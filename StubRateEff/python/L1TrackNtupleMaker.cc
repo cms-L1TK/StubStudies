@@ -1011,6 +1011,98 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
 
       }
     }
+    int mythis_tp = 0;
+    std::vector< TrackingParticle >::const_iterator iterTP;
+  
+    GlobalPoint coords, coords0, coords1;
+    for (iterTP = TrackingParticleHandle->begin(); iterTP != TrackingParticleHandle->end(); ++iterTP) {
+      edm::Ptr< TrackingParticle > tp_ptr(TrackingParticleHandle, mythis_tp);
+      mythis_tp++;
+      if (abs(iterTP->pdgId()) == 13  || abs(iterTP->pdgId()) == 11 || abs(iterTP->pdgId()) == 211){
+        float *stub_B = new float[6];
+        float *stub_E = new float[5];
+        float *clust_B = new float[6];
+        float *clust_E = new float[5];
+        for (int i=0;i<6;++i){
+         stub_B[i] = 0;
+         clust_B[i] = 0;
+        }
+        for (int i=0;i<5;++i){
+         stub_E[i] = 0;
+         clust_E[i] = 0;
+        }
+        for (unsigned int k=0; k<MCTruthTTClusterHandle->findTTClusterRefs(tp_ptr).size(); ++k) {
+          DetId clusdetid = MCTruthTTClusterHandle->findTTClusterRefs(tp_ptr).at(k)->getDetId();
+          if(clusdetid.subdetId()!=StripSubdetector::TOB && clusdetid.subdetId()!=StripSubdetector::TID ) continue;
+          if(!(MCTruthTTClusterHandle->isGenuine(MCTruthTTClusterHandle->findTTClusterRefs(tp_ptr).at(k)))) continue;
+          if(MCTruthTTClusterHandle->findTTClusterRefs(tp_ptr).at(k)->findWidth()>4) continue;
+  
+          if ( clusdetid.subdetId()==StripSubdetector::TOB ) {
+            clust_B[static_cast<int>(tTopo->layer(clusdetid)) - 1]++;
+          }
+          if ( clusdetid.subdetId()==StripSubdetector::TID ) {
+            clust_E[static_cast<int>(tTopo->layer(clusdetid)) - 1]++;
+          }
+  
+          DetId stackDetid = tTopo->stack(clusdetid);
+          const GeomDetUnit* det0 = theTrackerGeom->idToDetUnit( clusdetid );
+          const PixelGeomDetUnit* theGeomDet = dynamic_cast< const PixelGeomDetUnit* >( det0 );
+          const PixelTopology* topol = dynamic_cast< const PixelTopology* >( &(theGeomDet->specificTopology()) );
+  
+          coords = theGeomDet->surface().toGlobal(topol->localPosition(MCTruthTTClusterHandle->findTTClusterRefs(tp_ptr).at(k)->findAverageLocalCoordinatesCentered()));
+          if (TTStubHandle->find( stackDetid ) == TTStubHandle->end() ) continue;
+          edmNew::DetSet< TTStub< Ref_Phase2TrackerDigi_ > > stubs = (*TTStubHandle)[ stackDetid ];
+          for ( auto stubIter = stubs.begin();stubIter != stubs.end();++stubIter ) {
+            coords0 = theGeomDet->surface().toGlobal( topol->localPosition(stubIter->clusterRef(0)->findAverageLocalCoordinatesCentered()));
+            coords1 = theGeomDet->surface().toGlobal( topol->localPosition(stubIter->clusterRef(1)->findAverageLocalCoordinatesCentered()));
+            if(coords.x() == coords0.x() || coords.x() == coords1.x()){
+              if (clusdetid.subdetId()==StripSubdetector::TOB ) {
+                stub_B[static_cast<int>(tTopo->layer(clusdetid)) - 1]++;
+                break;
+              }
+              if ( clusdetid.subdetId()==StripSubdetector::TID ) {
+                stub_E[static_cast<int>(tTopo->layer(clusdetid)) - 1]++;
+                break;
+              }
+            }
+          }
+        }
+      m_stubEff_BL1->push_back(stub_B[0]);
+      m_stubEff_BL2->push_back(stub_B[1]);
+      m_stubEff_BL3->push_back(stub_B[2]);
+      m_stubEff_BL4->push_back(stub_B[3]);
+      m_stubEff_BL5->push_back(stub_B[4]);
+      m_stubEff_BL6->push_back(stub_B[5]);
+  
+      m_stubEff_EL1->push_back(stub_E[0]);
+      m_stubEff_EL2->push_back(stub_E[1]);
+      m_stubEff_EL3->push_back(stub_E[2]);
+      m_stubEff_EL4->push_back(stub_E[3]);
+      m_stubEff_EL5->push_back(stub_E[4]);
+  
+      m_clustEff_BL1->push_back(clust_B[0]);
+      m_clustEff_BL2->push_back(clust_B[1]);
+      m_clustEff_BL3->push_back(clust_B[2]);
+      m_clustEff_BL4->push_back(clust_B[3]);
+      m_clustEff_BL5->push_back(clust_B[4]);
+      m_clustEff_BL6->push_back(clust_B[5]);
+  
+      m_clustEff_EL1->push_back(clust_E[0]);
+      m_clustEff_EL2->push_back(clust_E[1]);
+      m_clustEff_EL3->push_back(clust_E[2]);
+      m_clustEff_EL4->push_back(clust_E[3]);
+      m_clustEff_EL5->push_back(clust_E[4]);
+  
+      m_stubEff_tp_pt->push_back(iterTP->pt());
+      m_stubEff_tp_pdgid->push_back(iterTP->pdgId());
+      m_stubEff_tp_eta->push_back(iterTP->eta());
+      m_stubEff_tp_phi->push_back(iterTP->phi());
+      delete []stub_B;
+      delete []stub_E;
+      delete []clust_B;
+      delete []clust_E;
+      }
+    }
   }
 
   // ----------------------------------------------------------------------------------------------
