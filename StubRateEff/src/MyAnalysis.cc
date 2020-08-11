@@ -58,6 +58,9 @@ void MyAnalysis::Loop(TString fname, float Nin, TString pname)
   Dim4 stubsRateGenuineCICfail(2,Dim3(6,Dim2(100,Dim1(100))));
   Dim4 stubsRateCombinatoricCICfail(2,Dim3(6,Dim2(100,Dim1(100))));
   Dim4 stubsRateUnknownCICfail(2,Dim3(6,Dim2(100,Dim1(100))));
+  Dim4 stubsRateGenuinept2GeV(2,Dim3(6,Dim2(100,Dim1(100))));
+  Dim4 stubsRateGenuineCBCfailpt2GeV(2,Dim3(6,Dim2(100,Dim1(100))));
+  Dim4 stubsRateGenuineCICfailpt2GeV(2,Dim3(6,Dim2(100,Dim1(100))));
   Dim4 tmpstubsRate(2,Dim3(6,Dim2(100,Dim1(100))));
   Dim4 stubsRate_z(2,Dim3(6,Dim2(100,Dim1(100))));
   Dim4 stubsRate_rho(2,Dim3(6,Dim2(100,Dim1(100))));
@@ -79,6 +82,9 @@ void MyAnalysis::Loop(TString fname, float Nin, TString pname)
              stubsRateGenuineCICfail[i][k][l][m] = 0;
              stubsRateCombinatoricCICfail[i][k][l][m] = 0;
              stubsRateUnknownCICfail[i][k][l][m] = 0;
+             stubsRateGenuinept2GeV[i][k][l][m] = 0;
+             stubsRateGenuineCBCfailpt2GeV[i][k][l][m] = 0;
+             stubsRateGenuineCICfailpt2GeV[i][k][l][m] = 0;
              tmpstubsRate[i][k][l][m] = 0;
              stubsRate_z[i][k][l][m] = 0;
              stubsRate_rho[i][k][l][m] = 0;
@@ -118,6 +124,22 @@ void MyAnalysis::Loop(TString fname, float Nin, TString pname)
       }
     }
   }
+
+  std::vector<TString> category{"All", "Genuine","Combinatoric","Unknown", "GenuinePtg2GeV"};
+  TH1Dim3 HistsLayer(regions.size(),TH1Dim2(channels.size(),TH1Dim1(category.size())));
+  for (int i=0;i<regions.size();++i){
+    for (int j=0;j<channels.size();++j){
+      for (int l=0;l<category.size();++l){
+      name<<regions[i]<<"_Layer_"<<category[l]<<"_"<<channels[j];
+      h_test = new TH1F((name.str()).c_str(),(name.str()).c_str(),6,0,6);
+      h_test->StatOverflows(kTRUE);
+      h_test->Sumw2(kTRUE);
+      HistsLayer[i][j][l] = h_test;
+      name.str("");
+      }
+    }
+  }
+
 
   TH1Dim3 HistsPmodule(regions.size(),TH1Dim2(layers.size(),TH1Dim1(vars.size())));
   for (int i=0;i<regions.size();++i){
@@ -193,18 +215,21 @@ void MyAnalysis::Loop(TString fname, float Nin, TString pname)
       mEta.SetXYZ(allstub_module_x->at(k),allstub_module_y->at(k),allstub_module_z->at(k));
       stubsRate[allstub_isBarrel->at(k)][allstub_layer->at(k)-1][allstub_ladder->at(k)-1][allstub_module->at(k)]++;
       if(allstub_genuine->at(k)) stubsRateGenuine[allstub_isBarrel->at(k)][allstub_layer->at(k)-1][allstub_ladder->at(k)-1][allstub_module->at(k)]++;
+      if(allstub_genuine->at(k) && allstub_matchTP_pt->at(k)>2) stubsRateGenuinept2GeV[allstub_isBarrel->at(k)][allstub_layer->at(k)-1][allstub_ladder->at(k)-1][allstub_module->at(k)]++;
       if(allstub_isCombinatoric->at(k)) stubsRateCombinatoric[allstub_isBarrel->at(k)][allstub_layer->at(k)-1][allstub_ladder->at(k)-1][allstub_module->at(k)]++;
       if (allstub_isUnknown->at(k)) stubsRateUnknown[allstub_isBarrel->at(k)][allstub_layer->at(k)-1][allstub_ladder->at(k)-1][allstub_module->at(k)]++;
       tmpstubsRate[allstub_isBarrel->at(k)][allstub_layer->at(k)-1][allstub_ladder->at(k)-1][allstub_module->at(k)]++;
       if (allstub_trigDisplace->at(k)>200 && allstub_trigDisplace->at(k)<300) {
         stubsRateCBCfail[allstub_isBarrel->at(k)][allstub_layer->at(k)-1][allstub_ladder->at(k)-1][allstub_module->at(k)]++;
         if(allstub_genuine->at(k)) stubsRateGenuineCBCfail[allstub_isBarrel->at(k)][allstub_layer->at(k)-1][allstub_ladder->at(k)-1][allstub_module->at(k)]++;
+        if(allstub_genuine->at(k) && allstub_matchTP_pt->at(k)>2) stubsRateGenuineCBCfailpt2GeV[allstub_isBarrel->at(k)][allstub_layer->at(k)-1][allstub_ladder->at(k)-1][allstub_module->at(k)]++;                                 
         if(allstub_isCombinatoric->at(k)) stubsRateCombinatoricCBCfail[allstub_isBarrel->at(k)][allstub_layer->at(k)-1][allstub_ladder->at(k)-1][allstub_module->at(k)]++;
         if (allstub_isUnknown->at(k)) stubsRateUnknownCBCfail[allstub_isBarrel->at(k)][allstub_layer->at(k)-1][allstub_ladder->at(k)-1][allstub_module->at(k)]++;
       }
       if (allstub_trigDisplace->at(k)>400) {
         stubsRateCICfail[allstub_isBarrel->at(k)][allstub_layer->at(k)-1][allstub_ladder->at(k)-1][allstub_module->at(k)]++;
         if(allstub_genuine->at(k)) stubsRateGenuineCICfail[allstub_isBarrel->at(k)][allstub_layer->at(k)-1][allstub_ladder->at(k)-1][allstub_module->at(k)]++;
+        if(allstub_genuine->at(k) && allstub_matchTP_pt->at(k)>2) stubsRateGenuineCICfailpt2GeV[allstub_isBarrel->at(k)][allstub_layer->at(k)-1][allstub_ladder->at(k)-1][allstub_module->at(k)]++;
         if(allstub_isCombinatoric->at(k)) stubsRateCombinatoricCICfail[allstub_isBarrel->at(k)][allstub_layer->at(k)-1][allstub_ladder->at(k)-1][allstub_module->at(k)]++;
         if (allstub_isUnknown->at(k)) stubsRateUnknownCICfail[allstub_isBarrel->at(k)][allstub_layer->at(k)-1][allstub_ladder->at(k)-1][allstub_module->at(k)]++;
       }
@@ -331,6 +356,21 @@ void MyAnalysis::Loop(TString fname, float Nin, TString pname)
             HistsPmodule[j][k][2] ->Fill(stubsRate_z[j][k][l][m]);
             HistsPmodule[j][k][3] ->Fill(stubsRate_rho[j][k][l][m]);
           }
+          HistsLayer[j][0][0]->Fill(k,float(stubsRate[j][k][l][m])/N);
+          HistsLayer[j][0][1]->Fill(k,float(stubsRateGenuine[j][k][l][m])/N);
+          HistsLayer[j][0][2]->Fill(k,float(stubsRateCombinatoric[j][k][l][m])/N);
+          HistsLayer[j][0][3]->Fill(k,float(stubsRateUnknown[j][k][l][m])/N);
+          HistsLayer[j][0][4]->Fill(k,float(stubsRateGenuinept2GeV[j][k][l][m])/N);
+          HistsLayer[j][2][0]->Fill(k,float(stubsRateCBCfail[j][k][l][m])/N);
+          HistsLayer[j][2][1]->Fill(k,float(stubsRateGenuineCBCfail[j][k][l][m])/N);
+          HistsLayer[j][2][2]->Fill(k,float(stubsRateCombinatoricCBCfail[j][k][l][m])/N);
+          HistsLayer[j][2][3]->Fill(k,float(stubsRateUnknownCBCfail[j][k][l][m])/N);
+          HistsLayer[j][2][4]->Fill(k,float(stubsRateGenuineCBCfailpt2GeV[j][k][l][m])/N);
+          HistsLayer[j][3][0]->Fill(k,float(stubsRateCICfail[j][k][l][m])/N);
+          HistsLayer[j][3][1]->Fill(k,float(stubsRateGenuineCICfail[j][k][l][m])/N);
+          HistsLayer[j][3][2]->Fill(k,float(stubsRateCombinatoricCICfail[j][k][l][m])/N);
+          HistsLayer[j][3][3]->Fill(k,float(stubsRateUnknownCICfail[j][k][l][m])/N);
+          HistsLayer[j][3][4]->Fill(k,float(stubsRateGenuineCICfailpt2GeV[j][k][l][m])/N);
         }
       }
     }
@@ -345,6 +385,13 @@ void MyAnalysis::Loop(TString fname, float Nin, TString pname)
   }
 
   TFile file_out (fname,"RECREATE");
+  for (int i=0;i<regions.size();++i){
+    for (int j=0;j<channels.size();++j){
+      for (int l=0;l<category.size();++l){
+         HistsLayer[i][j][l]->Write("",TObject::kOverwrite);
+      }
+    }
+  }
 
   for (int i=0;i<regions.size();++i){
     for (int j=0;j<layers.size();++j){
