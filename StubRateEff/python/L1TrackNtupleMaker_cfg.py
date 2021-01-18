@@ -58,20 +58,22 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase2_realistic', '')
 # input and output
 ############################################################
 
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(10))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
 # Get list of MC datasets from repo, or specify yourself.
 
 def getTxtFile(txtFileName): 
   return FileUtils.loadListFromFile(os.environ['CMSSW_BASE']+'/src/'+txtFileName)
 
-if GEOMETRY == "D49":
-    inputMC = ["/store/relval/CMSSW_11_1_0_pre2/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU25ns_110X_mcRun4_realistic_v2_2026D49PU200-v1/20000/F7BF4AED-51F1-9D47-B86D-6C3DDA134AB9.root"]
+#if GEOMETRY == "D49":
+##    inputMC = ["/store/relval/CMSSW_11_1_0_pre2/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU25ns_110X_mcRun4_realistic_v2_2026D49PU200-v1/20000/F7BF4AED-51F1-9D47-B86D-6C3DDA134AB9.root"]
+##    inputMC = ["/store/relval/CMSSW_11_1_0_pre2/RelValSingleEFlatPt1p5To8/GEN-SIM-DIGI-RAW/110X_mcRun4_realistic_v2_HS_2026D49noPU-v1/10000/EAA6F3E0-9D75-2449-AFC6-74A4928ADE2E.root"]    
+#    inputMC = getTxtFile('L1Trigger/TrackFindingTracklet/test/MCsamples/1110/RelVal/SingleElPt1p5to8/PU0.txt')
+#else:
+#    print "this is not a valid geometry!!!"
     
-else:
-    print "this is not a valid geometry!!!"
-    
-process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring(*inputMC))
+#process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring(*inputMC))
+process.source = cms.Source("PoolSource", fileNames = cms.untracked.vstring("/store/relval/CMSSW_11_2_0_pre5/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/PU25ns_110X_mcRun4_realistic_v3_2026D49PU200-v1/20000/41CBFD85-E4CA-3A4B-B7E7-4F292205D1B9.root"))
 
 process.TFileService = cms.Service("TFileService", fileName = cms.string('outfile.root'), closeFileFast = cms.untracked.bool(True))
 process.Timing = cms.Service("Timing", summaryOnly = cms.untracked.bool(True))
@@ -173,6 +175,7 @@ process.L1TrackNtuple = cms.EDAnalyzer('L1TrackNtupleMaker',
                                        MCTruthTrackInputTag = cms.InputTag(L1TRUTH_NAME, L1TRK_LABEL),  # MCTruth input 
                                        # other input collections
                                        L1StubInputTag = cms.InputTag("TTStubsFromPhase2TrackerDigis","StubAccepted"),
+                                       L1StubRejectedInputTag = cms.InputTag("TTStubsFromPhase2TrackerDigis","StubRejected"),
                                        MCTruthClusterInputTag = cms.InputTag("TTClusterAssociatorFromPixelDigis", "ClusterInclusive"),
                                        MCTruthStubInputTag = cms.InputTag("TTStubAssociatorFromPixelDigis", "StubAccepted"),
                                        TrackingParticleInputTag = cms.InputTag("mix", "MergedTrackTruth"),
@@ -185,13 +188,13 @@ process.L1TrackNtuple = cms.EDAnalyzer('L1TrackNtupleMaker',
 process.ana = cms.Path(process.L1TrackNtuple)
 
 # use this if you want to re-run the stub making
-#process.schedule = cms.Schedule(process.TTClusterStub,process.TTClusterStubTruth,process.TTTracksEmulationWithTruth,process.ana)
+process.schedule = cms.Schedule(process.TTClusterStub,process.TTClusterStubTruth,process.TTTracksEmulationWithTruth,process.ana)
 
 # use this if cluster/stub associators not available 
 # process.schedule = cms.Schedule(process.TTClusterStubTruth,process.TTTracksEmulationWithTruth,process.ana)
 
 # use this to only run tracking + track associator
-process.schedule = cms.Schedule(process.TTTracksEmulationWithTruth,process.ana)
+#process.schedule = cms.Schedule(process.TTTracksEmulationWithTruth,process.ana)
 
 
 ############################################################
