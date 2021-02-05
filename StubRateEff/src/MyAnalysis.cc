@@ -194,7 +194,7 @@ void MyAnalysis::Loop(TString fname, float Nin, TString pname)
   }
 
 //Window tuning variables
-  std::vector<TString> channelsSW{"Rate","CBCfail","CICfail","Stub", "Cluster"};
+  std::vector<TString> channelsSW{"Rate","CBCfail","CICfail","Stub", "Cluster","RateGenuinePtg2GeV"};
   TH1Dim3 HistsSW(regions.size(),TH1Dim2(layers.size(),TH1Dim1(channelsSW.size())));
   for (int i=0;i<regions.size();++i){
     for (int j=0;j<layers.size();++j){
@@ -219,10 +219,10 @@ void MyAnalysis::Loop(TString fname, float Nin, TString pname)
 
 
 //tracking particle vattriables
-  std::vector<TString> TPvars   {"eta","pt","nstub","dxy","d0","d0_prod","z0","z0_prod"};
-  std::vector<int>    TPnbins   {30   ,20  ,15     ,100  , 50 ,50       ,150 , 150};
-  std::vector<float> TPlowEdge  {-3   ,0   ,0      ,0    ,-100,-60      ,-1000,-600};
-  std::vector<float> TPhighEdge {3    ,10  ,15     ,300  ,100 ,60       ,1000,600};
+  std::vector<TString> TPvars   {"etaPtg2","pt","nstub","dxy","d0","d0_prod","z0","z0_prod", "etaPtg2SLg4"};
+  std::vector<int>    TPnbins   {30   ,20  ,15     ,100  , 50 ,50       ,150 , 150,30};
+  std::vector<float> TPlowEdge  {-3   ,0   ,0      ,0    ,-100,-60      ,-1000,-600,-3};
+  std::vector<float> TPhighEdge {3    ,10  ,15     ,300  ,100 ,60       ,1000,600,3};
   TH1Dim1 TPHists(TPvars.size());
   for (int l=0;l<TPvars.size();++l){
     name<<"TP_"<<TPvars[l];
@@ -303,7 +303,7 @@ void MyAnalysis::Loop(TString fname, float Nin, TString pname)
 
 //TP rate calculation
     for (unsigned int k=0; k<tp_pt->size(); ++k) {
-      TPHists[0]->Fill(tp_eta->at(k), 1/N);
+      if (tp_pt->at(k)>2) TPHists[0]->Fill(tp_eta->at(k), 1/N);
       TPHists[1]->Fill(tp_pt->at(k), 1/N);
       TPHists[2]->Fill(tp_nstub->at(k), 1/N);
       TPHists[3]->Fill(tp_dxy->at(k), 1/N);
@@ -311,6 +311,7 @@ void MyAnalysis::Loop(TString fname, float Nin, TString pname)
       TPHists[5]->Fill(tp_d0_prod->at(k), 1/N);
       TPHists[6]->Fill(tp_z0->at(k), 1/N);
       TPHists[7]->Fill(tp_z0_prod->at(k), 1/N);
+      if (tp_pt->at(k)>2 && tp_nstub->at(k)>3) TPHists[8]->Fill(tp_eta->at(k), 1/N);
     }
   }
 
@@ -390,17 +391,19 @@ void MyAnalysis::Loop(TString fname, float Nin, TString pname)
         for (int m=0;m<100;++m){        
           if(j==1){
             HistsSW[j][k][0]->Fill(m,float(stubsRate[j][k][l][m]/N));
-            HistsSW[j][k][1]->Fill(m,float(stubsRateCBCfail[j][k][l][m]/N));
-            HistsSW[j][k][2]->Fill(m,float(stubsRateCICfail[j][k][l][m]/N));
+            HistsSW[j][k][1]->Fill(m,float(stubsRateGenuineCBCfailpt2GeV[j][k][l][m]/N));
+            HistsSW[j][k][2]->Fill(m,float(stubsRateGenuineCICfailpt2GeV[j][k][l][m]/N));
             HistsSW[j][k][3]->Fill(m,float(TpClustersInStubs[j][k][l][m]));
             HistsSW[j][k][4]->Fill(m,float(TpClusters[j][k][l][m]));
+            HistsSW[j][k][5]->Fill(m,float(stubsRateGenuinept2GeV[j][k][l][m]/N));
           }
           else{
             HistsSW[j][k][0]->Fill(l,float(stubsRate[j][k][l][m]/N));
-            HistsSW[j][k][1]->Fill(l,float(stubsRateCBCfail[j][k][l][m]/N));
-            HistsSW[j][k][2]->Fill(l,float(stubsRateCICfail[j][k][l][m]/N));
+            HistsSW[j][k][1]->Fill(l,float(stubsRateGenuineCBCfailpt2GeV[j][k][l][m]/N));
+            HistsSW[j][k][2]->Fill(l,float(stubsRateGenuineCICfailpt2GeV[j][k][l][m]/N));
             HistsSW[j][k][3]->Fill(l,float(TpClustersInStubs[j][k][l][m]));
             HistsSW[j][k][4]->Fill(l,float(TpClusters[j][k][l][m]));
+            HistsSW[j][k][5]->Fill(l,float(stubsRateGenuinept2GeV[j][k][l][m]/N));
           }
         }
       }
