@@ -116,44 +116,42 @@ def drawHistallW(A,AN, R, I):
     gc.collect()
 
 directory = '/afs/crc.nd.edu/user/r/rgoldouz/L1tracker/Analysis/StubStudies/StubRateEff/hists/'
-#sample = ['0p5','1p0','1p5','2p0','2p5','3p0','4p0','5p0','6p0','7p0']
-sample = ['TIGHT','REZA']
+sample = ['0p5','1p0','2p0','3p0','4p0','5p0','6p0','7p0']
+#sample = ['TIGHT','REZA']
 
 region = ['Barrel', 'Endcap']
-category=["Rate","CBCfail","CICfail","Stub", "Cluster"]
-plots = ['StubRate', 'CBC-FailFraction', 'CICFailFraction', 'StubMuEfficiency', 'StubEleEfficiency']
-
-onedinputPlots = []
-
-for r in region:
-    for b in category:
-        for i in range(1, 7):
-            onedinputPlots.append("SW_"+r+'_'+str(i)+'_'+b)
+plots = ['StubRate', 'CBC-FailFraction', 'CICFailFraction', 'DTCfailFraction','StubMuEfficiency', 'StubEleEfficiency']
 
 
 HHists=[]
 for s in sample:
-    filett = ROOT.TFile.Open(directory + 'FE_SW' + s + '_L1Stub_Tt_Pu200_110D49.root')
-    fileMu = ROOT.TFile.Open(directory + 'FE_SW' + s + '_L1Stub_SingleMuFlatPt1p5To8_Pu0_110D49.root')
-    fileEle = ROOT.TFile.Open(directory + 'FE_SW' + s + '_L1Stub_SingleEFlatPt1p5To8_Pu0_110D49.root')
+#    filett = ROOT.TFile.Open(directory + 'FE_SW' + s + '_L1Stub_Tt_Pu200_110D49.root')
+#    fileMu = ROOT.TFile.Open(directory + 'FE_SW' + s + '_L1Stub_SingleMuFlatPt1p5To8_Pu0_110D49.root')
+#    fileEle = ROOT.TFile.Open(directory + 'FE_SW' + s + '_L1Stub_SingleEFlatPt1p5To8_Pu0_110D49.root')
+    filett = ROOT.TFile.Open(directory + 'L1Stub_TTbar_CMSSW_11_2_0_pre5_2026D49PU200_SW' + s + '.root')
+    fileMu = ROOT.TFile.Open(directory + 'L1Stub_SingleMuFlatPt1p5To8_CMSSW_11_2_0_pre5_2026D49noPU_SW' + s + '.root')
+    fileEle = ROOT.TFile.Open(directory + 'L1Stub_SingleElectronFlatPt1p5To8_CMSSW_11_2_0_pre5_2026D49noPU_SW' + s + '.root')
     Hs=[]
     for r in region:
         Hr=[]
         for i in range(1, 7):
             H=[]
             histRate = filett.Get("SW_"+r+'_'+str(i)+'_'+"Rate")
+            histRateGenuinePtg2GeV = filett.Get("SW_"+r+'_'+str(i)+'_'+"RateGenuinePtg2GeV")
             histCBCfail = filett.Get("SW_"+r+'_'+str(i)+'_'+"CBCfail")
             histCICfail = filett.Get("SW_"+r+'_'+str(i)+'_'+"CICfail")
-            histCBCfail.Divide(histRate)
-            histCICfail.Divide(histRate)
+            histDTCfail = filett.Get("SW_"+r+'_'+str(i)+'_'+"DTCfail")
+            histCBCfail.Divide(histRateGenuinePtg2GeV)
+            histCICfail.Divide(histRateGenuinePtg2GeV)
+            histDTCfail.Divide(histRateGenuinePtg2GeV)
             histClusMu = fileMu.Get("SW_"+r+'_'+str(i)+'_'+"Cluster")
             histStubMu = fileMu.Get("SW_"+r+'_'+str(i)+'_'+"Stub") 
             histStubMu.Divide(histClusMu)
             histClusEle = fileEle.Get("SW_"+r+'_'+str(i)+'_'+"Cluster")
             histStubEle = fileEle.Get("SW_"+r+'_'+str(i)+'_'+"Stub")
             histStubEle.Divide(histClusEle)
-            H = [histRate, histCBCfail, histCICfail, histStubMu, histStubEle]
-            HN = ["Rate", "CBC fail fraction", "CIC fail fraction", "Stub eff (Mu, pt>2)", "Stub eff (Ele, pt>4)"]
+            H = [histRate, histCBCfail, histCICfail, histDTCfail, histStubMu, histStubEle]
+            HN = ["Rate", "CBC fail fraction", "CIC fail fraction", "DTC fail fraction", "Stub eff (Mu, pt>2)", "Stub eff (Ele, pt>4)"]
             Hr.append(H)
             drawHistperW(H, HN, r+ '-'+s , str(i))
         Hs.append(Hr)

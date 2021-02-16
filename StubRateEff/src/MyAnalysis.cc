@@ -65,7 +65,7 @@ void MyAnalysis::Loop(TString fname, float Nin, TString pname)
   Dim4 stubsRate_z(2,Dim3(6,Dim2(100,Dim1(100))));
   Dim4 stubsRate_rho(2,Dim3(6,Dim2(100,Dim1(100))));
   Dim4 stubsRate_eta(2,Dim3(6,Dim2(100,Dim1(100))));
-
+  Dim4 stubsRateGenuineDTCfailpt2GeV(2,Dim3(6,Dim2(100,Dim1(100))));
 
 //[barrel][layer][module phi index][module z index]
 //[endcap][disk][ring][module phi index]
@@ -93,6 +93,7 @@ void MyAnalysis::Loop(TString fname, float Nin, TString pname)
              stubsRate_z[i][k][l][m] = 0;
              stubsRate_rho[i][k][l][m] = 0;
              stubsRate_eta[i][k][l][m] = 0;
+             stubsRateGenuineDTCfailpt2GeV[i][k][l][m] = 0;
          }
       }
     }
@@ -194,7 +195,7 @@ void MyAnalysis::Loop(TString fname, float Nin, TString pname)
   }
 
 //Window tuning variables
-  std::vector<TString> channelsSW{"Rate","CBCfail","CICfail","Stub", "Cluster","RateGenuinePtg2GeV"};
+  std::vector<TString> channelsSW{"Rate","CBCfail","CICfail","Stub", "Cluster","RateGenuinePtg2GeV","DTCfail"};
   TH1Dim3 HistsSW(regions.size(),TH1Dim2(layers.size(),TH1Dim1(channelsSW.size())));
   for (int i=0;i<regions.size();++i){
     for (int j=0;j<layers.size();++j){
@@ -258,6 +259,8 @@ void MyAnalysis::Loop(TString fname, float Nin, TString pname)
       sEta.SetXYZ(allstub_x->at(k),allstub_y->at(k),allstub_z->at(k));
       mEta.SetXYZ(allstub_module_x->at(k),allstub_module_y->at(k),allstub_module_z->at(k));
       stubsRate[allstub_isBarrel->at(k)][allstub_layer->at(k)-1][allstub_ladder->at(k)-1][allstub_module->at(k)]++;
+      if(k<allstub_isDTCfail->size()){
+      if(allstub_isDTCfail->at(k) && allstub_genuine->at(k) && allstub_matchTP_pt->at(k)>2) stubsRateGenuineDTCfailpt2GeV[allstub_isBarrel->at(k)][allstub_layer->at(k)-1][allstub_ladder->at(k)-1][allstub_module->at(k)]++;}
       if(allstub_genuine->at(k)) stubsRateGenuine[allstub_isBarrel->at(k)][allstub_layer->at(k)-1][allstub_ladder->at(k)-1][allstub_module->at(k)]++;
       if(allstub_genuine->at(k) && allstub_matchTP_pt->at(k)>2) stubsRateGenuinept2GeV[allstub_isBarrel->at(k)][allstub_layer->at(k)-1][allstub_ladder->at(k)-1][allstub_module->at(k)]++;
       if(allstub_isCombinatoric->at(k)) stubsRateCombinatoric[allstub_isBarrel->at(k)][allstub_layer->at(k)-1][allstub_ladder->at(k)-1][allstub_module->at(k)]++;
@@ -396,6 +399,7 @@ void MyAnalysis::Loop(TString fname, float Nin, TString pname)
             HistsSW[j][k][3]->Fill(m,float(TpClustersInStubs[j][k][l][m]));
             HistsSW[j][k][4]->Fill(m,float(TpClusters[j][k][l][m]));
             HistsSW[j][k][5]->Fill(m,float(stubsRateGenuinept2GeV[j][k][l][m]/N));
+            HistsSW[j][k][6]->Fill(m,float(stubsRateGenuineDTCfailpt2GeV[j][k][l][m]/N));
           }
           else{
             HistsSW[j][k][0]->Fill(l,float(stubsRate[j][k][l][m]/N));
@@ -404,6 +408,7 @@ void MyAnalysis::Loop(TString fname, float Nin, TString pname)
             HistsSW[j][k][3]->Fill(l,float(TpClustersInStubs[j][k][l][m]));
             HistsSW[j][k][4]->Fill(l,float(TpClusters[j][k][l][m]));
             HistsSW[j][k][5]->Fill(l,float(stubsRateGenuinept2GeV[j][k][l][m]/N));
+            HistsSW[j][k][6]->Fill(l,float(stubsRateGenuineDTCfailpt2GeV[j][k][l][m]/N));   
           }
         }
       }

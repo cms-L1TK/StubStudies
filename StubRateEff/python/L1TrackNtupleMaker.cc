@@ -52,7 +52,7 @@
 #include "Geometry/CommonTopologies/interface/PixelGeomDetType.h"
 #include "Geometry/TrackerGeometryBuilder/interface/PixelTopologyBuilder.h"
 #include "Geometry/Records/interface/StackedTrackerGeometryRecord.h"
-
+#include "DataFormats/L1TrackTrigger/interface/TTDTC.h"
 ////////////////
 // PHYSICS TOOLS
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
@@ -120,7 +120,9 @@ private:
   edm::InputTag MCTruthClusterInputTag;
   edm::InputTag L1StubInputTag;
   edm::InputTag L1StubRejectedInputTag;
+  edm::InputTag L1DTCStubRejectedInputTag;
   edm::InputTag MCTruthStubInputTag;
+  edm::InputTag MCTruthStubRejectedInputTag;
   edm::InputTag TrackingParticleInputTag;
   edm::InputTag TrackingVertexInputTag;
   edm::InputTag GenJetInputTag;
@@ -128,8 +130,11 @@ private:
   edm::EDGetTokenT<edmNew::DetSetVector<TTCluster<Ref_Phase2TrackerDigi_> > > ttClusterToken_;
   edm::EDGetTokenT<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_> > > ttStubToken_;
   edm::EDGetTokenT<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_> > > ttStubRejectedToken_;
+  edm::EDGetTokenT<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_> > > ttDTCStubRejectedToken_;
+//  edm::EDGetTokenT<TTDTC> ttDTCStubRejectedToken_;
   edm::EDGetTokenT<TTClusterAssociationMap<Ref_Phase2TrackerDigi_> > ttClusterMCTruthToken_;
   edm::EDGetTokenT<TTStubAssociationMap<Ref_Phase2TrackerDigi_> > ttStubMCTruthToken_;
+  edm::EDGetTokenT<TTStubAssociationMap<Ref_Phase2TrackerDigi_> > ttStubRejectedMCTruthToken_;
 
   edm::EDGetTokenT<std::vector<TTTrack<Ref_Phase2TrackerDigi_> > > ttTrackToken_;
   edm::EDGetTokenT<TTTrackAssociationMap<Ref_Phase2TrackerDigi_> > ttTrackMCTruthToken_;
@@ -257,6 +262,7 @@ private:
   std::vector<float>* m_allstub_module_z;
   std::vector<int>*   m_allstub_fromPU;
   std::vector<int>*   m_allstub_isFEfail;
+  std::vector<int>*   m_allstub_isDTCfail;
   int limits[6][3];
 
 
@@ -304,8 +310,10 @@ L1TrackNtupleMaker::L1TrackNtupleMaker(edm::ParameterSet const& iConfig) : confi
 
   L1StubInputTag = iConfig.getParameter<edm::InputTag>("L1StubInputTag");
   L1StubRejectedInputTag = iConfig.getParameter<edm::InputTag>("L1StubRejectedInputTag");
+  L1DTCStubRejectedInputTag = iConfig.getParameter<edm::InputTag>("L1DTCStubRejectedInputTag");
   MCTruthClusterInputTag = iConfig.getParameter<edm::InputTag>("MCTruthClusterInputTag");
   MCTruthStubInputTag = iConfig.getParameter<edm::InputTag>("MCTruthStubInputTag");
+  MCTruthStubRejectedInputTag = iConfig.getParameter<edm::InputTag>("MCTruthStubRejectedInputTag");
   TrackingParticleInputTag = iConfig.getParameter<edm::InputTag>("TrackingParticleInputTag");
   TrackingVertexInputTag = iConfig.getParameter<edm::InputTag>("TrackingVertexInputTag");
   GenJetInputTag = iConfig.getParameter<edm::InputTag>("GenJetInputTag");
@@ -314,8 +322,12 @@ L1TrackNtupleMaker::L1TrackNtupleMaker(edm::ParameterSet const& iConfig) : confi
   ttTrackMCTruthToken_ = consumes<TTTrackAssociationMap<Ref_Phase2TrackerDigi_> >(MCTruthTrackInputTag);
   ttStubToken_ = consumes<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_> > >(L1StubInputTag);
   ttStubRejectedToken_ = consumes<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_> > >(L1StubRejectedInputTag);
+  ttDTCStubRejectedToken_ = consumes<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_> > >(L1DTCStubRejectedInputTag);
+//  ttDTCStubRejectedToken_ = consumes<TTDTC>(L1DTCStubRejectedInputTag);
+
   ttClusterMCTruthToken_ = consumes<TTClusterAssociationMap<Ref_Phase2TrackerDigi_> >(MCTruthClusterInputTag);
   ttStubMCTruthToken_ = consumes<TTStubAssociationMap<Ref_Phase2TrackerDigi_> >(MCTruthStubInputTag);
+  ttStubRejectedMCTruthToken_ = consumes<TTStubAssociationMap<Ref_Phase2TrackerDigi_> >(MCTruthStubRejectedInputTag);
 
   TrackingParticleToken_ = consumes<std::vector<TrackingParticle> >(TrackingParticleInputTag);
   TrackingVertexToken_ = consumes<std::vector<TrackingVertex> >(TrackingVertexInputTag);
@@ -459,6 +471,7 @@ void L1TrackNtupleMaker::beginJob() {
   m_allstub_module_z = new std::vector<float>;
   m_allstub_fromPU = new std::vector<int>;
   m_allstub_isFEfail = new std::vector<int>;
+  m_allstub_isDTCfail = new std::vector<int>;
 
   m_jet_eta = new std::vector<float>;
   m_jet_phi = new std::vector<float>;
@@ -589,6 +602,7 @@ void L1TrackNtupleMaker::beginJob() {
     eventTree->Branch("allstub_module_z", &m_allstub_module_z);
     eventTree->Branch("allstub_fromPU", &m_allstub_fromPU);
     eventTree->Branch("allstub_isFEfail", &m_allstub_isFEfail);
+    eventTree->Branch("allstub_isDTCfail", &m_allstub_isDTCfail);
 
     int n_tilted_rings[6];
     int n_flat_rings[6];
@@ -762,6 +776,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
 
     m_allstub_fromPU->clear();
     m_allstub_isFEfail->clear();
+    m_allstub_isDTCfail->clear();
   }
 
   m_jet_eta->clear();
@@ -782,15 +797,20 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
   // L1 stubs
   edm::Handle<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_> > > TTStubHandle;
   edm::Handle<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_> > > TTStubRejectedHandle;
+  edm::Handle<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_> > > TTDTCStubRejectedHandle;
+//  edm::Handle<TTDTC> TTDTCStubRejectedHandle;
   if (SaveStubs){
     iEvent.getByToken(ttStubToken_, TTStubHandle);
     iEvent.getByToken(ttStubRejectedToken_, TTStubRejectedHandle);
+    iEvent.getByToken(ttDTCStubRejectedToken_, TTDTCStubRejectedHandle);
   }
   // MC truth association maps
   edm::Handle<TTClusterAssociationMap<Ref_Phase2TrackerDigi_> > MCTruthTTClusterHandle;
   iEvent.getByToken(ttClusterMCTruthToken_, MCTruthTTClusterHandle);
   edm::Handle<TTStubAssociationMap<Ref_Phase2TrackerDigi_> > MCTruthTTStubHandle;
   iEvent.getByToken(ttStubMCTruthToken_, MCTruthTTStubHandle);
+  edm::Handle<TTStubAssociationMap<Ref_Phase2TrackerDigi_> > MCTruthTTStubRejectedHandle;
+  iEvent.getByToken(ttStubRejectedMCTruthToken_, MCTruthTTStubRejectedHandle);
   edm::Handle<TTTrackAssociationMap<Ref_Phase2TrackerDigi_> > MCTruthTTTrackHandle;
   iEvent.getByToken(ttTrackMCTruthToken_, MCTruthTTTrackHandle);
 
@@ -821,6 +841,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
     int type = 0;
     int ladder = 0;
     int module = 0;
+    GlobalPoint coords, coords0, coords1,coordsDTC0,coordsDTC1;
     for (auto gd = theTrackerGeom->dets().begin(); gd != theTrackerGeom->dets().end(); gd++) {
       DetId detid = (*gd)->geographicalId();
       if (detid.subdetId() != StripSubdetector::TOB && detid.subdetId() != StripSubdetector::TID)
@@ -837,11 +858,11 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
       const GeomDetUnit* det0 = theTrackerGeom->idToDetUnit(detid);
       const auto* theGeomDet = dynamic_cast<const PixelGeomDetUnit*>(det0);
       const PixelTopology* topol = dynamic_cast<const PixelTopology*>(&(theGeomDet->specificTopology()));
-
       // loop over stubs
       for (auto stubIter = stubs.begin(); stubIter != stubs.end(); ++stubIter) {
-        edm::Ref<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_> >, TTStub<Ref_Phase2TrackerDigi_> > tempStubPtr =
-            edmNew::makeRefTo(TTStubHandle, stubIter);
+        edm::Ref<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_> >, TTStub<Ref_Phase2TrackerDigi_> > tempStubPtr = edmNew::makeRefTo(TTStubHandle, stubIter);
+
+
 
         int isBarrel = 0;
         int layer = -999999;
@@ -863,6 +884,28 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
         MeasurementPoint coords = tempStubPtr->clusterRef(0)->findAverageLocalCoordinatesCentered();
         LocalPoint clustlp = topol->localPosition(coords);
         GlobalPoint posStub = theGeomDet->surface().toGlobal(clustlp);
+
+        //Loop over DTC rejected stub to see if this stub is failed in DTC
+        int isDTCFail = 0;
+        coords0 = theGeomDet->surface().toGlobal( topol->localPosition(tempStubPtr->clusterRef(0)->findAverageLocalCoordinatesCentered()));
+        coords1 = theGeomDet->surface().toGlobal( topol->localPosition(tempStubPtr->clusterRef(1)->findAverageLocalCoordinatesCentered()));
+   
+        if (TTDTCStubRejectedHandle->find(stackDetid) != TTDTCStubRejectedHandle->end()){
+            edmNew::DetSet<TTStub<Ref_Phase2TrackerDigi_> > DTCstubs = (*TTDTCStubRejectedHandle)[stackDetid];
+            for (auto DTCstubIter = DTCstubs.begin(); DTCstubIter != DTCstubs.end(); ++DTCstubIter) {
+                edm::Ref<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_> >, TTStub<Ref_Phase2TrackerDigi_> > DTCtempStubPtr = edmNew::makeRefTo(TTDTCStubRejectedHandle, DTCstubIter);
+                coordsDTC0 = theGeomDet->surface().toGlobal( topol->localPosition(DTCstubIter->clusterRef(0)->findAverageLocalCoordinatesCentered()));
+                coordsDTC1 = theGeomDet->surface().toGlobal( topol->localPosition(DTCstubIter->clusterRef(1)->findAverageLocalCoordinatesCentered()));
+                if (coords0.x() == coordsDTC0.x() && coords1.x() == coordsDTC1.x() &&
+                    coords0.y() == coordsDTC0.y() && coords1.y() == coordsDTC1.y() &&
+                    coords0.z() == coordsDTC0.z() && coords1.z() == coordsDTC1.z() ) {
+                        isDTCFail=1;
+                }
+                if(isDTCFail) break;
+            }
+        }
+
+        m_allstub_isDTCfail->push_back(isDTCFail);
 
         double tmp_stub_x = posStub.x();
         double tmp_stub_y = posStub.y();
@@ -972,7 +1015,6 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
     int isB = 0;
     int isStub = 0;
     std::vector< TrackingParticle >::const_iterator iterTP;
-    GlobalPoint coords, coords0, coords1;
 //Loop over TP
     for (iterTP = TrackingParticleHandle->begin(); iterTP != TrackingParticleHandle->end(); ++iterTP) {
       edm::Ptr< TrackingParticle > tp_ptr(TrackingParticleHandle, mythis_tp);
@@ -1099,8 +1141,8 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
         m_allstub_trigPos->push_back(trigPos);
         m_allstub_trigBend->push_back(trigBend);
 
-        int isCombinatoric = (int) MCTruthTTStubHandle->isCombinatoric(tempStubPtr);
-        int isUnknown = (int) MCTruthTTStubHandle->isUnknown(tempStubPtr);
+        int isCombinatoric = (int) MCTruthTTStubRejectedHandle->isCombinatoric(tempStubPtr);
+        int isUnknown = (int) MCTruthTTStubRejectedHandle->isUnknown(tempStubPtr);
 
          m_allstub_module_x->push_back(theGeomDet->surface().position().x());
          m_allstub_module_y->push_back(theGeomDet->surface().position().y());
@@ -1108,6 +1150,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
          m_allstub_isCombinatoric->push_back(isCombinatoric);
          m_allstub_isUnknown->push_back(isUnknown);
          m_allstub_isFEfail->push_back(1);
+        m_allstub_isDTCfail->push_back(0);
 
         MeasurementPoint mp0 = tempStubPtr->clusterRef(0)->findAverageLocalCoordinates();
         int chipSize = 127;
@@ -1139,7 +1182,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
         m_allstub_ladder->push_back(ladder);
         m_allstub_module->push_back(module);
         m_allstub_type->push_back(type);
-        edm::Ptr<TrackingParticle> my_tp = MCTruthTTStubHandle->findTrackingParticlePtr(tempStubPtr);
+        edm::Ptr<TrackingParticle> my_tp = MCTruthTTStubRejectedHandle->findTrackingParticlePtr(tempStubPtr);
 
         int myTP_pdgid = -999;
         float myTP_pt = -999;
@@ -1169,7 +1212,7 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
         m_allstub_matchTP_phi->push_back(myTP_phi);
 
         int tmp_stub_genuine = 0;
-        if (MCTruthTTStubHandle->isGenuine(tempStubPtr))  tmp_stub_genuine = 1;
+        if (MCTruthTTStubRejectedHandle->isGenuine(tempStubPtr))  tmp_stub_genuine = 1;
 
         m_allstub_genuine->push_back(tmp_stub_genuine);
         m_allstub_fromPU->push_back(PUtrack);

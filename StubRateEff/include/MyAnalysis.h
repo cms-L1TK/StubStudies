@@ -94,6 +94,7 @@ public :
    vector<float>   *allstub_matchTP_eta;
    vector<float>   *allstub_matchTP_phi;
    vector<int>     *allstub_genuine;
+   vector<int>     *allstub_isDTCfail;
    vector<int>     *stubEff_clu_isBarrel;
    vector<int>     *stubEff_clu_ladder;
    vector<int>     *stubEff_clu_module;
@@ -189,6 +190,7 @@ public :
    TBranch        *b_allstub_matchTP_eta;   //!
    TBranch        *b_allstub_matchTP_phi;   //!
    TBranch        *b_allstub_genuine;   //!
+   TBranch        *b_allstub_isDTCfail;   //!
    TBranch        *b_stubEff_clu_isBarrel;   //!
    TBranch        *b_stubEff_clu_ladder;   //!
    TBranch        *b_stubEff_clu_module;   //!
@@ -349,6 +351,7 @@ void MyAnalysis::Init(TTree *tree)
    allstub_matchTP_eta = 0;
    allstub_matchTP_phi = 0;
    allstub_genuine = 0;
+   allstub_isDTCfail = 0;
    stubEff_clu_isBarrel = 0;
    stubEff_clu_ladder = 0;
    stubEff_clu_module = 0;
@@ -448,6 +451,7 @@ void MyAnalysis::Init(TTree *tree)
    fChain->SetBranchAddress("allstub_matchTP_eta", &allstub_matchTP_eta, &b_allstub_matchTP_eta);
    fChain->SetBranchAddress("allstub_matchTP_phi", &allstub_matchTP_phi, &b_allstub_matchTP_phi);
    fChain->SetBranchAddress("allstub_genuine", &allstub_genuine, &b_allstub_genuine);
+   fChain->SetBranchAddress("allstub_isDTCfail", &allstub_isDTCfail, &b_allstub_isDTCfail);
    fChain->SetBranchAddress("stubEff_clu_isBarrel", &stubEff_clu_isBarrel, &b_stubEff_clu_isBarrel);
    fChain->SetBranchAddress("stubEff_clu_ladder", &stubEff_clu_ladder, &b_stubEff_clu_ladder);
    fChain->SetBranchAddress("stubEff_clu_module", &stubEff_clu_module, &b_stubEff_clu_module);
