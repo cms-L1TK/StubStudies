@@ -262,7 +262,9 @@ for s in sampleTune:
 os.system("mkdir plot_SW_perW")
 os.system("mv *.png plot_SW_perW")
 
+os.system("mkdir plot_SW_AllW")
 for c in range(len(plots)):
+    os.system("mkdir plot_SW_AllW/" + plots[c])
     for r in range(len(region)):
         for i in range(1, 7):
             H=[]
@@ -273,8 +275,7 @@ for c in range(len(plots)):
                 HT.append(HHistsTune[s][r][i-1][c])
             drawHistallW(H,sampleSW,HT,sampleTune, region[r]+'-'+plots[c] , str(i))
 
-os.system("mkdir plot_SW_AllW")
-os.system("mv *.png plot_SW_AllW")
+    os.system("mv *.png plot_SW_AllW/"+ plots[c])
 
 
 

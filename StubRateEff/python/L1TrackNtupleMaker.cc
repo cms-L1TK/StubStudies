@@ -896,9 +896,13 @@ void L1TrackNtupleMaker::analyze(const edm::Event& iEvent, const edm::EventSetup
                 edm::Ref<edmNew::DetSetVector<TTStub<Ref_Phase2TrackerDigi_> >, TTStub<Ref_Phase2TrackerDigi_> > DTCtempStubPtr = edmNew::makeRefTo(TTDTCStubRejectedHandle, DTCstubIter);
                 coordsDTC0 = theGeomDet->surface().toGlobal( topol->localPosition(DTCstubIter->clusterRef(0)->findAverageLocalCoordinatesCentered()));
                 coordsDTC1 = theGeomDet->surface().toGlobal( topol->localPosition(DTCstubIter->clusterRef(1)->findAverageLocalCoordinatesCentered()));
-                if (coords0.x() == coordsDTC0.x() && coords1.x() == coordsDTC1.x() &&
+                if ((coords0.x() == coordsDTC0.x() && coords1.x() == coordsDTC1.x() &&
                     coords0.y() == coordsDTC0.y() && coords1.y() == coordsDTC1.y() &&
-                    coords0.z() == coordsDTC0.z() && coords1.z() == coordsDTC1.z() ) {
+                    coords0.z() == coordsDTC0.z() && coords1.z() == coordsDTC1.z() ) ||
+                    (coords0.x() == coordsDTC1.x() && coords1.x() == coordsDTC0.x() &&
+                    coords0.y() == coordsDTC1.y() && coords1.y() == coordsDTC0.y() &&
+                    coords0.z() == coordsDTC1.z() && coords1.z() == coordsDTC0.z() ))
+                 {
                         isDTCFail=1;
                 }
                 if(isDTCFail) break;
