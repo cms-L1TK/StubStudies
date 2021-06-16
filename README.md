@@ -25,6 +25,16 @@ cmsrel CMSSW_11_3_0_pre3
 cd CMSSW_11_3_0_pre3/src/
 cmsenv 
 git cms-checkout-topic -u cms-L1TK:L1TK-dev-11_3_0_pre3
+git cms-addpkg L1Trigger/TrackTrigger
+scram b -j 8
 ```
+Then somewhere else clone the code for stub window tuning
+```
+git clone git@github.com:cms-L1TK/StubStudies.git
+```
+
+replace the official ' L1TrackNtupleMaker.cc ' and ' L1TrackNtupleMaker_cfg.py ' files in 'CMSSW_11_3_0_pre3/src/L1Trigger/TrackFindingTracklet/test/' directory with the files in 'StubStudies/StubRateEff/python'. after compiling you should be abale to run the Ntuple producer and produce needed variables for the next step.
+
+
 
 
