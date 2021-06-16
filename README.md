@@ -56,6 +56,6 @@ Last step is making final histograms using the following code
 python plot/SW_Tunning_v2.py
 ```
 
-Then you should reproduce plots in [link](https://rgoldouz.web.cern.ch/rgoldouz/MyPlots/L1tracker/16June2021/plot_SW_AllW/)
+Then you should have reproduced plots in [link](https://rgoldouz.web.cern.ch/rgoldouz/MyPlots/L1tracker/16June2021/plot_SW_AllW/)
 
 
