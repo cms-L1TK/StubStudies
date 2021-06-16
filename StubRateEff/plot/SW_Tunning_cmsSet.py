@@ -120,18 +120,18 @@ def drawHistallW(A,AN, R, I):
 
 
 
-CBCLimit = 0.005
+CBCLimit = 0.001
 CICLimit=0.001
-EleEffLimit=0.75
-MuEffLimit=0.85
+EleEffLimit=0.02
+MuEffLimit=0.02
 
 directory = '/afs/crc.nd.edu/user/r/rgoldouz/L1tracker/Analysis/StubStudies/StubRateEff/hists/'
 sample = [
-'0p5','1p0','1p5','2p0','2p5','3p0','4p0','5p0','6p0','7p0']
-sampleV = [0.5,1.0,1.5,2.0,2.5,3.0,4.0,5.0,6.0,7.0]
+'0p5','1p0','1p5','2p0','2p5','3p0','3p5','4p0','4p5','5p0','5p5','6p0','6p5','7p0']
+sampleV = [0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0,4.5,5.0,5.5,6.0,6.5,7.0]
 
-sample = ['7p0','6p0','5p0','4p0','3p0','2p5','2p0','1p5','1p0','0p5']
-sampleV = [7.0,6.0,5.0,4.0,3.0,2.5,2.0,1.5,1.0,0.5,]
+#sample = ['7p0','6p0','5p0','4p0','3p0','2p5','2p0','1p5','1p0','0p5']
+#sampleV = [7.0,6.0,5.0,4.0,3.0,2.5,2.0,1.5,1.0,0.5,]
 
 region = ['Barrel', 'Endcap']
 category=["Rate","CBCfail","CICfail","Stub", "Cluster"]
@@ -147,9 +147,9 @@ for r in region:
 
 HHists=[]
 for s in sample:
-    filett = ROOT.TFile.Open(directory + 'FE_SW' + s + '_L1Stub_Tt_Pu200_110D49.root')
-    fileMu = ROOT.TFile.Open(directory + 'FE_SW' + s + '_L1Stub_SingleMuFlatPt1p5To8_Pu0_110D49.root')
-    fileEle = ROOT.TFile.Open(directory + 'FE_SW' + s + '_L1Stub_SingleEFlatPt1p5To8_Pu0_110D49.root')
+    filett = ROOT.TFile.Open(directory + 'L1Stub_TTbar_CMSSW_11_2_0_pre5_2026D49PU200_SW' + s + '.root')
+    fileMu = ROOT.TFile.Open(directory + 'L1Stub_SingleMuFlatPt1p5To8_CMSSW_11_2_0_pre5_2026D49noPU_SW' + s + '.root')
+    fileEle = ROOT.TFile.Open(directory + 'L1Stub_SingleElectronFlatPt1p5To8_CMSSW_11_2_0_pre5_2026D49noPU_SW' + s + '.root')
     Hs=[]
     for r in region:
         Hr=[]
@@ -173,8 +173,8 @@ for s in sample:
 #            drawHistperW(H, HN, r+ '-'+s , str(i))
         Hs.append(Hr)
     HHists.append(Hs)
-os.system("mkdir plot_SW_perW")
-os.system("mv *.png plot_SW_perW")
+#os.system("mkdir plot_SW_perW")
+#os.system("mv *.png plot_SW_perW")
 
 for c in range(len(plots)):
     for r in range(len(region)):
@@ -206,10 +206,11 @@ for r in range(len(region)):
                 continue
             param.append(0)
             for s in range(len(sample)):
-                if HHists[s][r][i-1][1].GetBinContent(b+1)<CBCLimit and HHists[s][r][i-1][2].GetBinContent(b+1)<CICLimit and HHists[s][r][i-1][3].GetBinContent(b+1)>MuEffLimit and HHists[s][r][i-1][4].GetBinContent(b+1)>EleEffLimit:
-#                if HHists[s][r][i-1][3].GetBinContent(b+1)>MuEffLimit and HHists[s][r][i-1][4].GetBinContent(b+1)>EleEffLimit:
+                if HHists[s][r][i-1][1].GetBinContent(b+1)<CBCLimit and HHists[s][r][i-1][2].GetBinContent(b+1)<CICLimit:
                     param[b] = sampleV[s]
-                    break
+                    if HHists[-1][r][i-1][3].GetBinContent(b+1)-HHists[s][r][i-1][3].GetBinContent(b+1)<MuEffLimit and HHists[-1][r][i-1][4].GetBinContent(b+1)-HHists[s][r][i-1][4].GetBinContent(b++1)<EleEffLimit:
+                        param[b] = sampleV[s]
+                        break
         if len(param)>0:
             if r==0 and i<4:
                 print region[r] + '/' + str(i)

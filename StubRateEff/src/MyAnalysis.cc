@@ -287,7 +287,8 @@ void MyAnalysis::Loop(TString fname, float Nin, TString pname)
 //Efficiency calculation
     for (unsigned int k=0; k<stubEff_clu_isBarrel->size(); ++k) {
       if(abs(stubEff_tp_pdgid->at(k)) != pid) continue;
-      if(stubEff_tp_d0->at(k) > 0.3 || stubEff_tp_pt->at(k)<0.5) continue; 
+//      if(stubEff_tp_d0->at(k) > 0.3 || stubEff_tp_pt->at(k)<0.5) continue; 
+      if(stubEff_tp_pt->at(k)<0.5) continue;      
       cEta.SetXYZ(stubEff_clu_x->at(k),stubEff_clu_y->at(k),stubEff_clu_z->at(k));
 
       HistsEff[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1][1][0]->Fill(abs(cEta.Eta()));
