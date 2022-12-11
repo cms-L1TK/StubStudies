@@ -35,17 +35,24 @@ void displayProgress(long current, long max){
 
 void MyAnalysis::Loop(TString fname, float Nin, TString pname)
 {
-
-//Stub Rate **************************************************************************************************
-
-
   typedef vector<float> Dim1;
   typedef vector<Dim1> Dim2;
   typedef vector<Dim2> Dim3;
   typedef vector<Dim3> Dim4;
-  typedef vector<Dim4> Dim5;
-  typedef vector<Dim5> Dim6;
 
+  typedef vector<TH1F*> TH1Dim1;
+  typedef vector<TH1Dim1> TH1Dim2;
+  typedef vector<TH1Dim2> TH1Dim3;
+  typedef vector<TH1Dim3> TH1Dim4;
+
+  typedef vector<TH2F*> TH2Dim1;
+  typedef vector<TH2Dim1> TH2Dim2;
+  typedef vector<TH2Dim2> TH2Dim3;
+  typedef vector<TH2Dim3> TH2Dim4;
+
+  Dim2 sRLayers(2,Dim1(6));
+  Dim2 sRLayersPlus(2,Dim1(6));
+  Dim2 sRLayersMinus(2,Dim1(6));
   Dim4 stubsRate(2,Dim3(6,Dim2(100,Dim1(100))));
   Dim4 stubsRateGenuine(2,Dim3(6,Dim2(100,Dim1(100))));
   Dim4 stubsRateCombinatoric(2,Dim3(6,Dim2(100,Dim1(100))));
@@ -72,29 +79,32 @@ void MyAnalysis::Loop(TString fname, float Nin, TString pname)
 
   for (int i=0;i<2;++i){
     for (int k=0;k<6;++k){
+      sRLayers[i][k] = 0;
+      sRLayersPlus[i][k] = 0;
+      sRLayersMinus[i][k] = 0;
       for (int l=0;l<100;++l){
         for (int m=0;m<100;++m){
-             stubsRate[i][k][l][m] = 0;
-             stubsRateGenuine[i][k][l][m] = 0;
-             stubsRateCombinatoric[i][k][l][m] = 0;
-             stubsRateUnknown[i][k][l][m] = 0;
-             stubsRateCBCfail[i][k][l][m] = 0;
-             stubsRateGenuineCBCfail[i][k][l][m] = 0;
-             stubsRateCombinatoricCBCfail[i][k][l][m] = 0;
-             stubsRateUnknownCBCfail[i][k][l][m] = 0;
-             stubsRateCICfail[i][k][l][m] = 0;
-             stubsRateGenuineCICfail[i][k][l][m] = 0;
-             stubsRateCombinatoricCICfail[i][k][l][m] = 0;
-             stubsRateUnknownCICfail[i][k][l][m] = 0;
-             stubsRateGenuinept2GeV[i][k][l][m] = 0;
-             stubsRateGenuineCBCfailpt2GeV[i][k][l][m] = 0;
-             stubsRateGenuineCICfailpt2GeV[i][k][l][m] = 0;
-             tmpstubsRate[i][k][l][m] = 0;
-             stubsRate_z[i][k][l][m] = 0;
-             stubsRate_rho[i][k][l][m] = 0;
-             stubsRate_eta[i][k][l][m] = 0;
-             stubsRateGenuineDTCfailpt2GeV[i][k][l][m] = 0;
-         }
+          stubsRate[i][k][l][m] = 0;
+          stubsRateGenuine[i][k][l][m] = 0;
+          stubsRateCombinatoric[i][k][l][m] = 0;
+          stubsRateUnknown[i][k][l][m] = 0;
+          stubsRateCBCfail[i][k][l][m] = 0;
+          stubsRateGenuineCBCfail[i][k][l][m] = 0;
+          stubsRateCombinatoricCBCfail[i][k][l][m] = 0;
+          stubsRateUnknownCBCfail[i][k][l][m] = 0;
+          stubsRateCICfail[i][k][l][m] = 0;
+          stubsRateGenuineCICfail[i][k][l][m] = 0;
+          stubsRateCombinatoricCICfail[i][k][l][m] = 0;
+          stubsRateUnknownCICfail[i][k][l][m] = 0;
+          stubsRateGenuinept2GeV[i][k][l][m] = 0;
+          stubsRateGenuineCBCfailpt2GeV[i][k][l][m] = 0;
+          stubsRateGenuineCICfailpt2GeV[i][k][l][m] = 0;
+          tmpstubsRate[i][k][l][m] = 0;
+          stubsRate_z[i][k][l][m] = 0;
+          stubsRate_rho[i][k][l][m] = 0;
+          stubsRate_eta[i][k][l][m] = 0;
+          stubsRateGenuineDTCfailpt2GeV[i][k][l][m] = 0;
+        }
       }
     }
   }
@@ -107,11 +117,6 @@ void MyAnalysis::Loop(TString fname, float Nin, TString pname)
   std::vector<float> lowEdge  {-3   ,0     ,-300   ,0       ,0 };
   std::vector<float> highEdge {3    ,4     ,300    ,120     ,30};
 
-  typedef vector<TH1F*> TH1Dim1;
-  typedef vector<TH1Dim1> TH1Dim2;
-  typedef vector<TH1Dim2> TH1Dim3;
-  typedef vector<TH1Dim3> TH1Dim4;
-
   TH1Dim4 Hists(regions.size(),TH1Dim3(layers.size(),TH1Dim2(channels.size(),TH1Dim1(vars.size()))));
   std::stringstream name;
   TH1F *h_test;
@@ -119,12 +124,12 @@ void MyAnalysis::Loop(TString fname, float Nin, TString pname)
     for (int j=0;j<layers.size();++j){
       for (int k=0;k<channels.size();++k){
         for (int l=0;l<vars.size();++l){
-        name<<regions[i]<<"_"<<vars[l]<<"_"<<layers[j]<<"_"<<channels[k];
-        h_test = new TH1F((name.str()).c_str(),(name.str()).c_str(),nbins[l],lowEdge[l],highEdge[l]);
-        h_test->StatOverflows(kTRUE);
-        h_test->Sumw2(kTRUE);
-        Hists[i][j][k][l] = h_test;
-        name.str("");
+          name<<regions[i]<<"_"<<vars[l]<<"_"<<layers[j]<<"_"<<channels[k];
+          h_test = new TH1F((name.str()).c_str(),(name.str()).c_str(),nbins[l],lowEdge[l],highEdge[l]);
+          h_test->StatOverflows(kTRUE);
+          h_test->Sumw2(kTRUE);
+          Hists[i][j][k][l] = h_test;
+          name.str("");
         }
       }
     }
@@ -135,27 +140,26 @@ void MyAnalysis::Loop(TString fname, float Nin, TString pname)
   for (int i=0;i<regions.size();++i){
     for (int j=0;j<channels.size();++j){
       for (int l=0;l<category.size();++l){
-      name<<regions[i]<<"_Layer_"<<category[l]<<"_"<<channels[j];
-      h_test = new TH1F((name.str()).c_str(),(name.str()).c_str(),6,0,6);
-      h_test->StatOverflows(kTRUE);
-      h_test->Sumw2(kTRUE);
-      HistsLayer[i][j][l] = h_test;
-      name.str("");
+        name<<regions[i]<<"_Layer_"<<category[l]<<"_"<<channels[j];
+        h_test = new TH1F((name.str()).c_str(),(name.str()).c_str(),6,0,6);
+        h_test->StatOverflows(kTRUE);
+        h_test->Sumw2(kTRUE);
+        HistsLayer[i][j][l] = h_test;
+        name.str("");
       }
     }
   }
-
 
   TH1Dim3 HistsPmodule(regions.size(),TH1Dim2(layers.size(),TH1Dim1(vars.size())));
   for (int i=0;i<regions.size();++i){
     for (int j=0;j<layers.size();++j){
       for (int l=0;l<vars.size();++l){
-      name<<"Pmodule_"<<regions[i]<<"_"<<layers[j]<<"_"<<vars[l];
-      h_test = new TH1F((name.str()).c_str(),(name.str()).c_str(),nbins[l],lowEdge[l],highEdge[l]);
-      h_test->StatOverflows(kTRUE);
-      h_test->Sumw2(kTRUE);
-      HistsPmodule[i][j][l] = h_test;
-      name.str("");
+        name<<"Pmodule_"<<regions[i]<<"_"<<layers[j]<<"_"<<vars[l];
+        h_test = new TH1F((name.str()).c_str(),(name.str()).c_str(),nbins[l],lowEdge[l],highEdge[l]);
+        h_test->StatOverflows(kTRUE);
+        h_test->Sumw2(kTRUE);
+        HistsPmodule[i][j][l] = h_test;
+        name.str("");
       }
     }
   }
@@ -163,39 +167,62 @@ void MyAnalysis::Loop(TString fname, float Nin, TString pname)
 // efficiency variables
   Dim4 TpClusters(2,Dim3(6,Dim2(100,Dim1(100))));
   Dim4 TpClustersInStubs(2,Dim3(6,Dim2(100,Dim1(100))));
+  Dim4 TpClustersInStubs2(2,Dim3(6,Dim2(100,Dim1(100))));
   for (int i=0;i<2;++i){
     for (int k=0;k<6;++k){
       for (int l=0;l<100;++l){
         for (int m=0;m<100;++m){
-             TpClusters[i][k][l][m] = 0;
-             TpClustersInStubs[i][k][l][m] = 0;
+          TpClustersInStubs2[i][k][l][m] = 0;
          }
       }
     }
   }
-  std::vector<TString> channelsEff{"Stub", "Cluster"};
-  std::vector<TString> varsEff   {"eta","pt"};
-  std::vector<int>    nbinsEff   {20   , 50};
-  std::vector<float> lowEdgeEff  {0   ,0  };
-  std::vector<float> highEdgeEff {4   ,10 };
+  std::vector<TString> channelsEff{"Cluster", "Stub", "Stub2"};
+  std::vector<TString> varsEff   {"StubEta","TpPt", "TpEta", "TpDxy", "TpZ0","TpD0"};
+  std::vector<int>    nbinsEff   {20   , 50,20 ,20  , 40 ,40};
+  std::vector<float> lowEdgeEff  {0   ,0   ,0  ,0,-40,-40};
+  std::vector<float> highEdgeEff {3   ,10  ,3  ,40, 40,40};
   TH1Dim4 HistsEff(regions.size(),TH1Dim3(layers.size(),TH1Dim2(channelsEff.size(),TH1Dim1(varsEff.size()))));
   for (int i=0;i<regions.size();++i){
     for (int j=0;j<layers.size();++j){
       for (int k=0;k<channelsEff.size();++k){
         for (int l=0;l<varsEff.size();++l){
-        name<<regions[i]<<"_"<<varsEff[l]<<"_"<<layers[j]<<"_"<<channelsEff[k];
-        h_test = new TH1F((name.str()).c_str(),(name.str()).c_str(),nbinsEff[l],lowEdgeEff[l],highEdgeEff[l]);
-        h_test->StatOverflows(kTRUE);
-        h_test->Sumw2(kTRUE);
-        HistsEff[i][j][k][l] = h_test;
+          name<<regions[i]<<"_"<<varsEff[l]<<"_"<<layers[j]<<"_"<<channelsEff[k];
+          h_test = new TH1F((name.str()).c_str(),(name.str()).c_str(),nbinsEff[l],lowEdgeEff[l],highEdgeEff[l]);
+          h_test->StatOverflows(kTRUE);
+          h_test->Sumw2(kTRUE);
+          HistsEff[i][j][k][l] = h_test;
+          name.str("");
+        }
+      }
+    }
+  }
+
+  const std::map<TString, std::vector<float>> varsEff2D =
+  {
+    {"stubEtaVsdxy",                       {0,      20,   0,  3,  20, 0, 40}},
+    {"stubEtaVsdz",                        {1,      20,   0,  3,  40, -40, 40}},
+    {"stubEtaVsd0",                        {2,      20,   0,  3,  40, -40, 40}},
+    {"tpEtaVsdxy",                         {3,      20,   0,  3,  20, 0, 40}},
+  };
+  TH2F *h_test2D;
+  TH2Dim4 HistsEff2D(regions.size(),TH2Dim3(layers.size(),TH2Dim2(channelsEff.size(),TH2Dim1(varsEff.size()))));
+  for (int i=0;i<regions.size();++i){
+    for (int j=0;j<layers.size();++j){
+      for (int k=0;k<channelsEff.size();++k){
+        for( auto it = varsEff2D.cbegin() ; it != varsEff2D.cend() ; ++it ){
+        name<<regions[i]<<"_"<<it->first<<"_"<<layers[j]<<"_"<<channelsEff[k];
+        h_test2D = new TH2F((name.str()).c_str(),(name.str()).c_str(),it->second.at(1), it->second.at(2), it->second.at(3),it->second.at(4), it->second.at(5), it->second.at(6));
+        HistsEff2D[i][j][k][it->second.at(0)] = h_test2D;
         name.str("");
         }
       }
     }
   }
 
+
 //Window tuning variables
-  std::vector<TString> channelsSW{"Rate","CBCfail","CICfail","Stub", "Cluster","RateGenuinePtg2GeV","DTCfail"};
+  std::vector<TString> channelsSW{"Rate","CBCfail","CICfail","Stub", "Cluster","RateGenuinePtg2GeV","DTCfail", "Stub2"};
   TH1Dim3 HistsSW(regions.size(),TH1Dim2(layers.size(),TH1Dim1(channelsSW.size())));
   for (int i=0;i<regions.size();++i){
     for (int j=0;j<layers.size();++j){
@@ -218,6 +245,10 @@ void MyAnalysis::Loop(TString fname, float Nin, TString pname)
     }
   }
 
+  TH1F* h_tp_pt = new TH1F("tp_pt", ";Tracking particle p_{T} [GeV]; Tracking particles / 1.0 GeV", 100, 0, 100.0);
+  TH1F* h_tp_eta = new TH1F("tp_eta", ";Tracking particle #eta; Tracking particles / 0.1", 50, -2.5, 2.5);
+  TH1F* h_match_tp_pt = new TH1F("match_tp_pt", ";Tracking particle p_{T} [GeV]; Tracking particles / 1.0 GeV", 100, 0, 100.0);
+  TH1F* h_match_tp_eta = new TH1F("match_tp_eta", ";Tracking particle #eta; Tracking particles / 0.1", 50, -2.5, 2.5);
 
 //tracking particle vattriables
   std::vector<TString> TPvars   {"etaPtg2","pt","nstub","dxy","d0","d0_prod","z0","z0_prod", "etaPtg2SLg4"};
@@ -246,18 +277,27 @@ void MyAnalysis::Loop(TString fname, float Nin, TString pname)
   TVector3 mEta;
   TVector3 cEta;
   int ch = 0;
+  float TP_minPt = 2.0;
   cout<<"N events="<<N<<endl;
   for (Long64_t jentry=0; jentry<nentries;jentry++) {
     Long64_t ientry = LoadTree(jentry);
     if (ientry < 0) break;
     nb = fChain->GetEntry(jentry);   nbytes += nb;
     displayProgress(jentry, nentries) ;
+    for (int i=0;i<2;++i){
+      for (int k=0;k<6;++k){
+        sRLayersPlus[i][k] = 0;
+      }
+    }
     for (unsigned int k=0; k<allstub_x->size(); ++k) {
+
 //Rate Calculation
       //only look at the z+ Disks
       if (!allstub_isBarrel->at(k) && allstub_module_z->at(k) <0) continue;
       sEta.SetXYZ(allstub_x->at(k),allstub_y->at(k),allstub_z->at(k));
       mEta.SetXYZ(allstub_module_x->at(k),allstub_module_y->at(k),allstub_module_z->at(k));
+      if(allstub_genuine->at(k)) sRLayers[allstub_isBarrel->at(k)][allstub_layer->at(k)-1]++;
+      if(allstub_genuine->at(k) && allstub_matchTP_pdgid->at(k) == pid) sRLayersPlus[allstub_isBarrel->at(k)][allstub_layer->at(k)-1]++;
       stubsRate[allstub_isBarrel->at(k)][allstub_layer->at(k)-1][allstub_ladder->at(k)-1][allstub_module->at(k)]++;
       if(k<allstub_isDTCfail->size()){
       if(allstub_isDTCfail->at(k) && allstub_genuine->at(k) && allstub_matchTP_pt->at(k)>2) stubsRateGenuineDTCfailpt2GeV[allstub_isBarrel->at(k)][allstub_layer->at(k)-1][allstub_ladder->at(k)-1][allstub_module->at(k)]++;}
@@ -286,16 +326,46 @@ void MyAnalysis::Loop(TString fname, float Nin, TString pname)
     }
 //Efficiency calculation
     for (unsigned int k=0; k<stubEff_clu_isBarrel->size(); ++k) {
-      if(abs(stubEff_tp_pdgid->at(k)) != pid) continue;
+//      if(abs(stubEff_tp_pdgid->at(k)) != pid) continue;
+        if(stubEff_tp_pdgid->at(k) != pid) continue;
 //      if(stubEff_tp_d0->at(k) > 0.3 || stubEff_tp_pt->at(k)<0.5) continue; 
-      if(stubEff_tp_pt->at(k)<0.5) continue;      
+      if(stubEff_tp_pt->at(k)<1.5) continue;     
+      if (!stubEff_clu_isBarrel->at(k) && stubEff_clu_z->at(k) <0) continue; 
       cEta.SetXYZ(stubEff_clu_x->at(k),stubEff_clu_y->at(k),stubEff_clu_z->at(k));
 
-      HistsEff[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1][1][0]->Fill(abs(cEta.Eta()));
-      HistsEff[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1][1][1]->Fill(stubEff_tp_pt->at(k));
+      HistsEff[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1][0][0]->Fill(abs(cEta.Eta()));
+      HistsEff[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1][0][1]->Fill(stubEff_tp_pt->at(k));
+      HistsEff[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1][0][2]->Fill(stubEff_tp_eta->at(k));
+      HistsEff[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1][0][3]->Fill(stubEff_tp_dxy->at(k));
+      HistsEff[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1][0][4]->Fill(stubEff_tp_z0->at(k));
+      HistsEff[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1][0][5]->Fill(stubEff_tp_d0->at(k));
+      HistsEff2D[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1][0][0]->Fill(cEta.Eta(),stubEff_tp_dxy->at(k));
+      HistsEff2D[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1][0][1]->Fill(cEta.Eta(),stubEff_tp_z0->at(k));
+      HistsEff2D[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1][0][2]->Fill(cEta.Eta(),stubEff_tp_d0->at(k));
+      HistsEff2D[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1][0][3]->Fill(stubEff_tp_eta->at(k),stubEff_tp_dxy->at(k));
       if(stubEff_clu_isStub->at(k)){
-        HistsEff[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1][0][0]->Fill(abs(cEta.Eta()));
-        HistsEff[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1][0][1]->Fill(stubEff_tp_pt->at(k));
+        HistsEff[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1][1][0]->Fill(abs(cEta.Eta()));
+        HistsEff[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1][1][1]->Fill(stubEff_tp_pt->at(k));
+        HistsEff[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1][1][2]->Fill(stubEff_tp_eta->at(k));
+        HistsEff[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1][1][3]->Fill(stubEff_tp_dxy->at(k));
+        HistsEff[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1][1][4]->Fill(stubEff_tp_z0->at(k));
+        HistsEff[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1][1][5]->Fill(stubEff_tp_d0->at(k));
+        HistsEff2D[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1][1][0]->Fill(cEta.Eta(),stubEff_tp_dxy->at(k));
+        HistsEff2D[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1][1][1]->Fill(cEta.Eta(),stubEff_tp_z0->at(k));
+        HistsEff2D[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1][1][2]->Fill(cEta.Eta(),stubEff_tp_d0->at(k));
+        HistsEff2D[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1][1][3]->Fill(stubEff_tp_eta->at(k),stubEff_tp_dxy->at(k));
+      }
+      if(sRLayersPlus[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1]>0){
+        HistsEff[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1][2][0]->Fill(abs(cEta.Eta()));
+        HistsEff[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1][2][1]->Fill(stubEff_tp_pt->at(k));
+        HistsEff[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1][2][2]->Fill(stubEff_tp_eta->at(k));
+        HistsEff[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1][2][3]->Fill(stubEff_tp_dxy->at(k));
+        HistsEff[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1][2][4]->Fill(stubEff_tp_z0->at(k));
+        HistsEff[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1][2][5]->Fill(stubEff_tp_d0->at(k));
+        HistsEff2D[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1][2][0]->Fill(cEta.Eta(),stubEff_tp_dxy->at(k));
+        HistsEff2D[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1][2][1]->Fill(cEta.Eta(),stubEff_tp_z0->at(k));
+        HistsEff2D[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1][2][2]->Fill(cEta.Eta(),stubEff_tp_d0->at(k));
+        HistsEff2D[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1][2][3]->Fill(stubEff_tp_eta->at(k),stubEff_tp_dxy->at(k));
       }
       //find mu/ele efficiency with a pt cut 
       if(abs(stubEff_tp_pdgid->at(k)) == 13 && stubEff_tp_pt->at(k)<2) continue;
@@ -303,19 +373,30 @@ void MyAnalysis::Loop(TString fname, float Nin, TString pname)
 
       TpClusters[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1][stubEff_clu_ladder->at(k)-1][stubEff_clu_module->at(k)]++;
       if(stubEff_clu_isStub->at(k)) TpClustersInStubs[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1][stubEff_clu_ladder->at(k)-1][stubEff_clu_module->at(k)]++;        
+      if(sRLayersPlus[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1]>0) TpClustersInStubs2[stubEff_clu_isBarrel->at(k)][stubEff_clu_layer->at(k)-1][stubEff_clu_ladder->at(k)-1][stubEff_clu_module->at(k)]++;
     }
 
 //TP rate calculation
     for (unsigned int k=0; k<tp_pt->size(); ++k) {
-      if (tp_pt->at(k)>2) TPHists[0]->Fill(tp_eta->at(k), 1/N);
-      TPHists[1]->Fill(tp_pt->at(k), 1/N);
-      TPHists[2]->Fill(tp_nstub->at(k), 1/N);
-      TPHists[3]->Fill(tp_dxy->at(k), 1/N);
-      TPHists[4]->Fill(tp_d0->at(k), 1/N);
-      TPHists[5]->Fill(tp_d0_prod->at(k), 1/N);
-      TPHists[6]->Fill(tp_z0->at(k), 1/N);
-      TPHists[7]->Fill(tp_z0_prod->at(k), 1/N);
+      if (tp_pt->at(k)>2 && tp_nstub->at(k)>3 && tp_pdgid->at(k)==pid) {
+        TPHists[0]->Fill(tp_eta->at(k), 1/N);
+        TPHists[1]->Fill(tp_pt->at(k), 1/N);
+        TPHists[2]->Fill(tp_nstub->at(k), 1/N);
+        TPHists[3]->Fill(tp_dxy->at(k), 1/N);
+        TPHists[4]->Fill(tp_d0->at(k), 1/N);
+        TPHists[5]->Fill(tp_d0_prod->at(k), 1/N);
+        TPHists[6]->Fill(tp_z0->at(k), 1/N);
+        TPHists[7]->Fill(tp_z0_prod->at(k), 1/N);
+      }
       if (tp_pt->at(k)>2 && tp_nstub->at(k)>3) TPHists[8]->Fill(tp_eta->at(k), 1/N);
+      if (pname == "mu" || pname == "ele"){
+        if (tp_pt->at(k) < TP_minPt || tp_pdgid->at(k)!=pid) continue;
+        h_tp_pt->Fill(tp_pt->at(k));
+        h_tp_eta->Fill(tp_eta->at(k));
+        if(tp_nmatch->at(k)>0) h_match_tp_pt->Fill(tp_pt->at(k));
+        if(tp_nmatch->at(k)>0) h_match_tp_eta->Fill(tp_eta->at(k));
+
+      }
     }
   }
 
@@ -401,6 +482,7 @@ void MyAnalysis::Loop(TString fname, float Nin, TString pname)
             HistsSW[j][k][4]->Fill(m,float(TpClusters[j][k][l][m]));
             HistsSW[j][k][5]->Fill(m,float(stubsRateGenuinept2GeV[j][k][l][m]/N));
             HistsSW[j][k][6]->Fill(m,float(stubsRateGenuineDTCfailpt2GeV[j][k][l][m]/N));
+            HistsSW[j][k][7]->Fill(m,float(TpClustersInStubs2[j][k][l][m]));
           }
           else{
             HistsSW[j][k][0]->Fill(l,float(stubsRate[j][k][l][m]/N));
@@ -409,7 +491,8 @@ void MyAnalysis::Loop(TString fname, float Nin, TString pname)
             HistsSW[j][k][3]->Fill(l,float(TpClustersInStubs[j][k][l][m]));
             HistsSW[j][k][4]->Fill(l,float(TpClusters[j][k][l][m]));
             HistsSW[j][k][5]->Fill(l,float(stubsRateGenuinept2GeV[j][k][l][m]/N));
-            HistsSW[j][k][6]->Fill(l,float(stubsRateGenuineDTCfailpt2GeV[j][k][l][m]/N));   
+            HistsSW[j][k][6]->Fill(l,float(stubsRateGenuineDTCfailpt2GeV[j][k][l][m]/N));  
+            HistsSW[j][k][7]->Fill(l,float(TpClustersInStubs2[j][k][l][m]));
           }
         }
       }
@@ -455,6 +538,16 @@ void MyAnalysis::Loop(TString fname, float Nin, TString pname)
 
   for (int i=0;i<regions.size();++i){
     for (int j=0;j<layers.size();++j){
+      for (int k=0;k<channelsEff.size();++k){
+        for (int l=0;l<varsEff2D.size();++l){
+        HistsEff2D[i][j][k][l]->Write("",TObject::kOverwrite);
+        }
+      }
+    }
+  }
+
+  for (int i=0;i<regions.size();++i){
+    for (int j=0;j<layers.size();++j){
       for (int k=0;k<channelsSW.size();++k){
         HistsSW[i][j][k]->Write("",TObject::kOverwrite);
       }
@@ -489,7 +582,7 @@ void MyAnalysis::Loop(TString fname, float Nin, TString pname)
 
     for (int l=0;l<100;++l){
       for (int m=0;m<100;++m){
-        BL->SetBinContent(m+1,l+1, float(stubsRate[1][k][l][m])/float(nentries));
+        BL->SetBinContent(m+1,l+1, float(stubsRate[1][k][l][m])/N);
         if(stubsRate[1][k][l][m]>0) BLCBCfail->SetBinContent(m+1,l+1, float(stubsRateCBCfail[1][k][l][m])/float(stubsRate[1][k][l][m]));
         if(stubsRate[1][k][l][m]>0) BLCICfail->SetBinContent(m+1,l+1, float(stubsRateCICfail[1][k][l][m])/float(stubsRate[1][k][l][m]));
       }
@@ -524,8 +617,8 @@ void MyAnalysis::Loop(TString fname, float Nin, TString pname)
        name<<"Endcap_Rate2D_"<<k<<"_PBXCICfail_"<<l;
        ELCICfail = new TH2D((name.str()).c_str(),(name.str()).c_str(),nbins,0, 2*TMath::Pi(), 15,0,15);
 
-      for (int m=0;m<100;++m){
-        EL->SetBinContent(m+1,RING+1, float(stubsRate[0][k][l][m])/float(nentries));
+      for (int m=0;m<nbins;++m){
+        if(stubsRate[0][k][l][m]>0) EL->SetBinContent(m+1,RING+1, float(stubsRate[0][k][l][m])/N);
         if(stubsRate[0][k][l][m]>0) ELCBCfail->SetBinContent(m+1,RING+1, float(stubsRateCBCfail[0][k][l][m])/float(stubsRate[0][k][l][m]));
         if(stubsRate[0][k][l][m]>0) ELCICfail->SetBinContent(m+1,RING+1, float(stubsRateCICfail[0][k][l][m])/float(stubsRate[0][k][l][m]));
       }

@@ -117,7 +117,7 @@ def drawHistallW(A,AN, B, BN,R, I):
     mini=A[0].GetMinimum()
     for i in range(len(A)):
         A[i].SetMarkerStyle(20+i);
-        A[i].SetMarkerColor(30+i);
+        A[i].SetMarkerColor(1);
     
         if A[i].GetMaximum()>maxi:
             maxi=A[i].GetMaximum()
@@ -138,13 +138,14 @@ def drawHistallW(A,AN, B, BN,R, I):
         A[i].Draw("p HIST SAME")
         leg.AddEntry(A[i], AN[i]                           , "p");
     for i in range(len(B)):
-        B[i].SetLineColor(1+i);
+        B[i].SetLineColor(2+i);
+        B[i].SetLineWidth(2);
         if i+1==3:
-            B[i].SetLineColor(4);
+            B[i].SetLineColor(8);
         B[i].SetLineStyle(i*2);
         B[i].Draw("HIST SAME")
         leg.AddEntry(B[i], BN[i]                           , "L");
-
+        B[1].SetLineColor(4);
     leg.SetBorderSize(0)
     leg.SetTextFont(42)
     leg.SetTextSize(0.04)
@@ -183,15 +184,10 @@ plots = ['StubRate', 'CBC-FailFraction', 'CICFailFraction', 'DTCfailFraction','S
 
 HHistsSW=[]
 for s in sampleSW:
-    filett = ROOT.TFile.Open(directory +  'L1Stub_TTbar_D49_SW' + s + '.root')
-    fileMu = ROOT.TFile.Open(directory +  'L1Stub_SingleMu_D49_SW' + s + '.root')
-    fileEle = ROOT.TFile.Open(directory + 'L1Stub_SingleElectron_D49_SW' + s + '.root')
-    fileDMu = ROOT.TFile.Open(directory + 'L1Stub_DisplacedMu_D49_SW' + s + '.root')
-
-#    filett = ROOT.TFile.Open(directory + 'L1Stub_TTbar_CMSSW_11_2_0_pre5_2026D49PU200_SW' + s + '.root')
-#    fileMu = ROOT.TFile.Open(directory + 'L1Stub_SingleMuFlatPt1p5To8_CMSSW_11_2_0_pre5_2026D49noPU_SW' + s + '.root')
-#    fileEle = ROOT.TFile.Open(directory + 'L1Stub_SingleElectronFlatPt1p5To8_CMSSW_11_2_0_pre5_2026D49noPU_SW' + s + '.root')
-#    fileDMu = ROOT.TFile.Open(directory + 'L1Stub_DisplacedMuPt1p5To8_CMSSW_11_2_0_pre5_2026D49PUnoPU_SW' + s + '.root')
+    filett = ROOT.TFile.Open(directory +  'L1Stub_TTbar_D76_SW' + s + '.root')
+    fileMu = ROOT.TFile.Open(directory +  'L1Stub_SingleMu_D76_SW' + s + '.root')
+    fileEle = ROOT.TFile.Open(directory + 'L1Stub_SingleElectron_D76_SW' + s + '.root')
+    fileDMu = ROOT.TFile.Open(directory + 'L1Stub_DisplacedMu_D76_SW' + s + '.root')
     Hs=[]
     for r in region:
         Hr=[]
@@ -206,14 +202,14 @@ for s in sampleSW:
             histCICfail.Divide(histRateGenuinePtg2GeV)
             histDTCfail.Divide(histRateGenuinePtg2GeV)
             histClusMu = fileMu.Get("SW_"+r+'_'+str(i)+'_'+"Cluster")
-            histStubMu = fileMu.Get("SW_"+r+'_'+str(i)+'_'+"Stub") 
-            histStubMu.Divide(histClusMu)
+            histStubMu = fileMu.Get("SW_"+r+'_'+str(i)+'_'+"Stub2") 
+#            histStubMu.Divide(histClusMu)
             histClusEle = fileEle.Get("SW_"+r+'_'+str(i)+'_'+"Cluster")
-            histStubEle = fileEle.Get("SW_"+r+'_'+str(i)+'_'+"Stub")
+            histStubEle = fileEle.Get("SW_"+r+'_'+str(i)+'_'+"Stub2")
             histStubEle.Divide(histClusEle)
             histClusDMu = fileDMu.Get("SW_"+r+'_'+str(i)+'_'+"Cluster")
-            histStubDMu = fileDMu.Get("SW_"+r+'_'+str(i)+'_'+"Stub")
-            histStubDMu.Divide(histClusDMu)
+            histStubDMu = fileDMu.Get("SW_"+r+'_'+str(i)+'_'+"Stub2")
+#            histStubDMu.Divide(histClusDMu)
             H = [histRate, histCBCfail, histCICfail, histDTCfail, histStubMu, histStubEle, histStubDMu]
             HN = ["Rate", "CBC fail fraction", "CIC fail fraction", "DTC fail fraction", "Stub eff (Mu, pt>2)", "Stub eff (Ele, pt>4)", "Stub eff (Displaced Mu, pt>2)"]
             Hr.append(H)
@@ -223,13 +219,10 @@ for s in sampleSW:
 
 HHistsTune=[]
 for s in sampleTune:
-#    filett = ROOT.TFile.Open(directory + 'L1Stub_TTbar_CMSSW_11_2_0_pre5_2026D49PU200_SW' + s + '.root')
-#    fileMu = ROOT.TFile.Open(directory + 'L1Stub_SingleMuFlatPt1p5To8_CMSSW_11_2_0_pre5_2026D49noPU_SW' + s + '.root')
-#    fileEle = ROOT.TFile.Open(directory + 'L1Stub_SingleElectronFlatPt1p5To8_CMSSW_11_2_0_pre5_2026D49noPU_SW' + s + '.root')
-    filett = ROOT.TFile.Open(directory +  'L1Stub_TTbar_D49_SW' + s + '.root')
-    fileMu = ROOT.TFile.Open(directory +  'L1Stub_SingleMu_D49_SW' + s + '.root')
-    fileEle = ROOT.TFile.Open(directory + 'L1Stub_SingleElectron_D49_SW' + s + '.root')
-    fileDMu = ROOT.TFile.Open(directory + 'L1Stub_DisplacedMu_D49_SW' + s + '.root')
+    filett = ROOT.TFile.Open(directory +  'L1Stub_TTbar_D76_SW' + s + '.root')
+    fileMu = ROOT.TFile.Open(directory +  'L1Stub_SingleMu_D76_SW' + s + '.root')
+    fileEle = ROOT.TFile.Open(directory + 'L1Stub_SingleElectron_D76_SW' + s + '.root')
+    fileDMu = ROOT.TFile.Open(directory + 'L1Stub_DisplacedMu_D76_SW' + s + '.root')
 
     Hs=[]
     for r in region:
@@ -245,18 +238,18 @@ for s in sampleTune:
             histCICfail.Divide(histRateGenuinePtg2GeV)
             histDTCfail.Divide(histRateGenuinePtg2GeV)
             histClusMu = fileMu.Get("SW_"+r+'_'+str(i)+'_'+"Cluster")
-            histStubMu = fileMu.Get("SW_"+r+'_'+str(i)+'_'+"Stub")
-            histStubMu.Divide(histClusMu)
+            histStubMu = fileMu.Get("SW_"+r+'_'+str(i)+'_'+"Stub2")
+#            histStubMu.Divide(histClusMu)
             histClusEle = fileEle.Get("SW_"+r+'_'+str(i)+'_'+"Cluster")
-            histStubEle = fileEle.Get("SW_"+r+'_'+str(i)+'_'+"Stub")
+            histStubEle = fileEle.Get("SW_"+r+'_'+str(i)+'_'+"Stub2")
             histStubEle.Divide(histClusEle)
             histClusDMu = fileDMu.Get("SW_"+r+'_'+str(i)+'_'+"Cluster")
-            histStubDMu = fileDMu.Get("SW_"+r+'_'+str(i)+'_'+"Stub")
-            histStubDMu.Divide(histClusDMu)
+            histStubDMu = fileDMu.Get("SW_"+r+'_'+str(i)+'_'+"Stub2")
+#            histStubDMu.Divide(histClusDMu)
             H = [histRate, histCBCfail, histCICfail, histDTCfail, histStubMu, histStubEle, histStubDMu]
             HN = ["Rate", "CBC fail fraction", "CIC fail fraction", "DTC fail fraction", "Stub eff (Mu, pt>2)", "Stub eff (Ele, pt>4)", "Stub eff (Displaced Mu, pt>2)"]
             Hr.append(H)
-#            drawHistperW(H, HN, r+ '-'+s , str(i))
+            drawHistperW(H, HN, r+ '-'+s , str(i))
         Hs.append(Hr)
     HHistsTune.append(Hs)
 os.system("mkdir plot_SW_perW")
@@ -278,8 +271,20 @@ for c in range(len(plots)):
     os.system("mv *.png plot_SW_AllW/"+ plots[c])
 
 
-
-
+TPvars=   ["etaPtg2","pt","nstub","dxy","d0","d0_prod","z0","z0_prod", "etaPtg2SLg4"]
+FS=[]
+FS.append(directory +  'L1Stub_TTbar_D76_SW')
+FS.append(directory +  'L1Stub_SingleMu_D76_SW')
+FS.append(directory + 'L1Stub_SingleElectron_D76_SW')
+FS.append(directory + 'L1Stub_DisplacedMu_D76_SW')
+FSname=['Pion','Muon','Ele', 'Dmuon']
+for f in range(len(FS)):
+    for c in range(len(TPvars)):
+        H=[]
+        for s in sampleSW:
+            TPfile = ROOT.TFile.Open(FS[f]+ s + '.root')
+            H.append(TPfile.Get('TP_'+TPvars[c]))
+        drawHistallW(H,sampleSW,[],sampleTune, FSname[f]+'-'+TPvars[c] , '0')
 
 
 

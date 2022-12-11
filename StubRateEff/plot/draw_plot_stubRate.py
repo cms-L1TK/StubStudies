@@ -13,7 +13,7 @@ ROOT.gStyle.SetOptStat(0)
 from ROOT import TColor
 from ROOT import TGaxis
 import gc
-#TGaxis.SetMaxDigits(2)
+TGaxis.SetMaxDigits(2)
 ################################## MY SIGNAL AND SM BG ################################
 category=["All", "Genuine","Combinatoric","Unknown", "GenuinePtg2GeV"]
 def draw1dHist(A,textA="A", label_name="sample", can_name="can"):
@@ -74,7 +74,8 @@ def draw1dHist(A,textA="A", label_name="sample", can_name="can"):
     gc.collect()
 
 def draw2dHist(inputfile = "F"):
-    stub = ["_PBX","_PBXCBCfail", "_PBXCICfail"]
+#    stub = ["_PBX","_PBXCBCfail", "_PBXCICfail"]
+    stub = ["_PBX"]
     text = ["rate PBX", "fraction of stubs failed by CBC/MPA", "fraction of stubs failed by CIC"]
     zscaleB = [10,0.01,0.01]
     zscaleE = [1,0.007,0.01]
@@ -94,7 +95,7 @@ def draw2dHist(inputfile = "F"):
             A.GetYaxis().SetTitleOffset(0.7)
             A.GetXaxis().SetTitle("Module Z index");
             A.GetYaxis().SetTitle("Module #phi index")
-#            A.GetZaxis().SetRangeUser(0, zscale[num])
+            A.GetZaxis().SetRangeUser(0, 6)
             A.Draw("COLZ")
             label = ROOT.TLatex()
             label.SetTextAlign(12)
@@ -115,13 +116,16 @@ def draw2dHist(inputfile = "F"):
             cadre.GetYaxis().SetLabelSize(0.)
             cadre.GetYaxis().SetLabelOffset(999)
             canvas.cd()
+            cadre.GetZaxis().SetRangeUser(0, 5)
             cadre.Draw("col");
             a = "Endcap_Rate2D_" + str(k) + st
             for l in range(0, 15):
                 b = "Endcap_Rate2D_" + str(k) + st +"_"+ str(l)
                 A = filem.Get(b)
 #                A.GetZaxis().SetRangeUser(0, zscaleE[num])
+#                A.GetZaxis().SetRangeUser(0, 0.1)
                 if l ==3:
+                    A.GetZaxis().SetRangeUser(0, 5)
                     A.Draw("POL colz SAME")  
                 else:
                     A.Draw("POL col SAME")
@@ -319,8 +323,8 @@ def compare3Hist(A, B, C, textA="A", textB="B", textC="C",label_name="sample", c
       label.DrawLatex(0.2,0.95, a + ", " + c)
 
     pad2.cd()
-    ratioB = A.Clone()
-    ratioB.Divide(B)
+    ratioB = B.Clone()
+    ratioB.Divide(A)
     ratioB.SetLineColor( 2 )
     ratioB.SetMaximum(2)
     ratioB.SetMinimum(0)
@@ -346,8 +350,8 @@ def compare3Hist(A, B, C, textA="A", textB="B", textC="C",label_name="sample", c
     dummy_ratio.Draw()
     ratioB.Draw("esame")
 
-    ratioC = A.Clone()
-    ratioC.Divide(C)
+    ratioC = C.Clone()
+    ratioC.Divide(A)
     ratioC.SetLineColor( 4 )
     ratioC.Draw("esame")
 
@@ -373,7 +377,8 @@ def compare6Hist(A,label_name="sample", can_name="can", axis_name="eta"):
     pad1=ROOT.TPad(pad_name, pad_name, 0, 0, 1, 1 , 0)
     pad1.Draw()
     pad1.cd()
-#    pad1.SetLogy()
+    if "fail" in d:
+        pad1.SetLogy()
     A[0].SetTitle("")
     A[0].GetXaxis().SetTitle(axis_name)
     A[0].GetXaxis().CenterTitle()
@@ -381,9 +386,12 @@ def compare6Hist(A,label_name="sample", can_name="can", axis_name="eta"):
         A[0].GetYaxis().SetTitle('TP rate')
     else:
         A[0].GetYaxis().SetTitle('Stub rate '+d)
+    if "fail" in d:
+        A[0].GetYaxis().SetTitle('Fraction of stubs '+ d)
     A[0].GetXaxis().SetTitleSize(0.05)
     A[0].GetYaxis().SetTitleSize(0.05)
-    A[0].GetXaxis().SetLabelSize(0)
+    A[0].GetYaxis().SetTitleOffset(0.85)
+#    A[0].GetXaxis().SetLabelSize(0)
     if b == "nstub":
         A[0].GetYaxis().SetTitle('Number of module')
     if b == "type":
@@ -391,19 +399,25 @@ def compare6Hist(A,label_name="sample", can_name="can", axis_name="eta"):
         A[0].GetXaxis().SetBinLabel(2,"Genuine")
         A[0].GetXaxis().SetBinLabel(3,"Combinatoric")
         A[0].GetXaxis().SetBinLabel(4,"Unknown")
-    A[0].SetMarkerStyle(25);
+        A[0].GetXaxis().SetLabelSize(0.08);
+    A[0].SetMarkerStyle(3);
     A[1].SetMarkerStyle(20);
     A[2].SetMarkerStyle(21);
     A[3].SetMarkerStyle(22);
     A[4].SetMarkerStyle(23);
-    A[5].SetMarkerStyle(4);
+    A[5].SetMarkerStyle(29);
     
-    A[0].SetMarkerColor(2);
-    A[1].SetMarkerColor(3);
-    A[2].SetMarkerColor(4);
-    A[3].SetMarkerColor(1);
-    A[4].SetMarkerColor(6);
-    A[5].SetMarkerColor(7);
+    A[0].SetMarkerColor(1);
+    A[1].SetMarkerColor(30);
+    A[2].SetMarkerColor(2);
+    A[3].SetMarkerColor(60);
+    A[4].SetMarkerColor(41);
+    A[5].SetMarkerColor(3);
+    maxY=0
+    for Hh in A:
+        Hh.SetMarkerSize(1.5)
+        if Hh.GetMaximum()>maxY:
+            maxY=Hh.GetMaximum()
 
     A[0].SetTitle("");
 #    A[0].GetXaxis().SetTitleSize(0.08);
@@ -411,13 +425,23 @@ def compare6Hist(A,label_name="sample", can_name="can", axis_name="eta"):
 #    A[0].GetYaxis().SetTitleOffset(0.5);
 #    A[0].GetXaxis().SetLabelSize(0.08);
     A[0].SetMinimum(0);
-    A[0].SetMaximum(1.2*A[0].GetMaximum());
+    if "fail" in d:
+        A[0].SetMinimum(0.00001);
+    if maxY<0.001:
+        maxY=0.001
+    A[0].SetMaximum(1.4*maxY);
+    if a=='Endcap' and b=='eta':
+        A[0].GetXaxis().SetRangeUser(0,3)
+    if a=='Endcap' and b=='z':
+        A[0].GetXaxis().SetRangeUser(100,300)
 
     A[0].Draw("p HIST SAME")
     A[1].Draw("p HIST SAME")
     A[2].Draw("p HIST SAME")
     A[3].Draw("p HIST SAME")
     A[4].Draw("p HIST SAME")
+    A[0].Draw("AXISSAMEY+")
+    A[0].Draw("AXISSAMEX+")
     if a == "Barrel":
         A[5].Draw("p HIST SAME")
 
@@ -446,7 +470,7 @@ def compare6Hist(A,label_name="sample", can_name="can", axis_name="eta"):
     label.SetTextFont(42)
     label.SetTextSize(0.08)
     label.SetNDC(ROOT.kTRUE)
-    label.DrawLatex(0.1,0.95, a + " , "+ can_name)
+    label.DrawLatex(0.17,0.95, a)
 
     canvas.Print("6D_" + can_name +"_"+ label_name + ".png")
 #    canvas.Print("6D_"+a+"_"+b+can_name + ".png")
@@ -467,7 +491,8 @@ samples = [
 #,'L1Stub_Tt_Pu200_112pre5_New.root'
 #'FE_TightTune_Tt_Pu200_110D49.root','FE_LooseTune_Tt_Pu200_110D49.root','FE_OldTune_Tt_Pu200_110D49.root'i
 #'TTbar_CMSSW_11_2_0_pre5_2026D49PU200.root','TTbar_CMSSW_11_1_0_pre2_2026D49PU200.root'
-'TTbar_CMSSW_11_2_0_pre5_2026D49PU200.root', 'TTbar_RezaTune_CMSSW_11_2_0_pre5_2026D49PU200.root'
+#'L1Stub_TTbar_D49_SWtight.root','L1Stub_TTbar_D76_SWtight.root'
+'L1Stub_TTbar_D76_SWtight.root'
 ]
 
 samplename = [
@@ -478,15 +503,16 @@ samplename = [
 #"tt_Pu200_110D49"
 #"test","tt Pu200 (TightTune)", "tt Pu200 (LooseTune)","tt Pu200 (OldTune)"
 #'tt_Pu200_112pre5','tt_Pu200_111pre2'
-'tt_Pu200_TightTune','tt_Pu200_NewTune'
+#'tt_Pu200_D49','tt_Pu200_D76'
+'tt_Pu200_D76'
 ]
 cn = '11x'
 region = ['Barrel', 'Endcap']
 variable = ['rho','type', 'eta', 'z']
 variable_axisName = ['#rho (cm)','Stub type', '#eta', 'z (cm)','Number of stubs']
 twoDvariable = ['Rate2D']
-#BX = ['PBX', 'PBXPmodule','PBXCICfail','PBXCBCfail']
-BX = ['PBX', 'PBXCICfail','PBXCBCfail']
+BX = ['PBX', 'PBXPmodule','PBXCICfail','PBXCBCfail']
+#BX = ['PBX', 'PBXCICfail','PBXCBCfail']
 category=["All", "Genuine","Combinatoric","Unknown", "GenuinePtg2GeV"]
 
 onedinputPlots = []
@@ -534,11 +560,12 @@ for r in region:
             sixdinputPlots.append(arr)
             sixdinputLabel.append(variable_axisName[n])
 
-is1D = False
-is2D = True
+is1D = True
+is2D = False
 is3D = False
 
 if is1D:
+    os.system("rm *.png")
     for num, sample in enumerate(samples):
         file1 = ROOT.TFile.Open(directory + sample)
         for v in onedinputPlots:
@@ -548,10 +575,10 @@ if is1D:
 #            print samplename[num]
             print v
             histA = file1.Get(v)
-            draw1dHist(histA, samplename[num], v,cn )
-            del histA
-        os.system("mkdir plot_rate1D" + samplename[num])
-        os.system("mv *.png plot_rate1D" + samplename[num])
+#            draw1dHist(histA, samplename[num], v,cn )
+#            del histA
+#        os.system("mkdir plot_rate1D" + samplename[num])
+#        os.system("mv *.png plot_rate1D" + samplename[num])
         draw2dHist(directory + sample)
         os.system("mkdir plot_rate2D" + samplename[num])
         os.system("mv *.png plot_rate2D" + samplename[num])
@@ -562,8 +589,28 @@ if is1D:
                 continue
             plots1=[]
             for i in range(0, 6):
-                plots1.append(file1.Get(v[i]))
-            compare6Hist(plots1,v,cn,sixdinputLabel[n])
+                a,b,c,d = v[i].split("_")
+                histA = file1.Get(v[i]) 
+                if d=='PBXCICfail' or d=='PBXCBCfail':
+                    histA.Divide(file1.Get(a+'_'+b+'_'+c+'_PBX'))
+                plots1.append(histA)
+            compare6Hist(plots1,v[0],cn,sixdinputLabel[n])
+    histA = file1.Get('Barrel_Layer_All_PBXCBCfail')
+    histB = file1.Get('Barrel_Layer_Genuine_PBXCBCfail')
+    histC = file1.Get('Barrel_Layer_GenuinePtg2GeV_PBXCBCfail')
+    histA.Divide(file1.Get('Barrel_Layer_All_PBX'))
+    histB.Divide(file1.Get('Barrel_Layer_Genuine_PBX'))
+    histC.Divide(file1.Get('Barrel_Layer_GenuinePtg2GeV_PBX'))
+    compare3Hist(histA, histB, histC, "All stubs", "Genuine stubs", "Genuine stubs pt>2 GeV", 'Barrel_Layer_All_PBXCBCfail','Layer' )
+    histA = file1.Get('Barrel_Layer_Genuine_PBXCBCfail')
+    histB = file1.Get('Barrel_Layer_Combinatoric_PBXCBCfail')
+    histC = file1.Get('Barrel_Layer_Unknown_PBXCBCfail')
+    histA.Divide(file1.Get('Barrel_Layer_Genuine_PBX'))
+    histB.Divide(file1.Get('Barrel_Layer_Combinatoric_PBX'))
+    histC.Divide(file1.Get('Barrel_Layer_Unknown_PBX'))
+    compare3Hist(histA, histB, histC, "Genuine stubs", "Combinatoric stubs", "Unknown stubs", 'Barrel_Layer_All_PBXCBCfail','LayerGCU' )
+
+
     
 if is2D:
     file1 = ROOT.TFile.Open(directory+samples[0])

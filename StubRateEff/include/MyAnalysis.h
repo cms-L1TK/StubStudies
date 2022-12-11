@@ -107,7 +107,13 @@ public :
    vector<int>     *stubEff_tp_pdgid;
    vector<float>   *stubEff_tp_eta;
    vector<float>   *stubEff_tp_phi;
-   vector<float>   *stubEff_tp_dz;
+   vector<float>   *stubEff_tp_vz;
+   vector<float>   *stubEff_tp_vx;
+   vector<float>   *stubEff_tp_vy;
+   vector<float>   *stubEff_tp_z0_prod;
+   vector<float>   *stubEff_tp_d0_prod;
+   vector<float>   *stubEff_tp_dxy;
+   vector<float>   *stubEff_tp_z0;
    vector<float>   *stubEff_tp_d0;
    vector<int>     *allstub_isCombinatoric;
    vector<int>     *allstub_isUnknown;
@@ -203,7 +209,13 @@ public :
    TBranch        *b_stubEff_tp_pdgid;   //!
    TBranch        *b_stubEff_tp_eta;   //!
    TBranch        *b_stubEff_tp_phi;   //!
-   TBranch        *b_stubEff_tp_dz;   //!
+   TBranch        *b_stubEff_tp_vz;   //!
+   TBranch        *b_stubEff_tp_vx;   //!
+   TBranch        *b_stubEff_tp_vy;   //!
+   TBranch        *b_stubEff_tp_z0_prod;   //!
+   TBranch        *b_stubEff_tp_d0_prod;   //!
+   TBranch        *b_stubEff_tp_dxy;   //!
+   TBranch        *b_stubEff_tp_z0;   //!
    TBranch        *b_stubEff_tp_d0;   //!
    TBranch        *b_allstub_isCombinatoric;   //!
    TBranch        *b_allstub_isUnknown;   //!
@@ -364,7 +376,13 @@ void MyAnalysis::Init(TTree *tree)
    stubEff_tp_pdgid = 0;
    stubEff_tp_eta = 0;
    stubEff_tp_phi = 0;
-   stubEff_tp_dz = 0;
+   stubEff_tp_vz = 0;
+   stubEff_tp_vx = 0;
+   stubEff_tp_vy = 0;
+   stubEff_tp_z0_prod = 0;
+   stubEff_tp_d0_prod = 0;
+   stubEff_tp_dxy = 0;
+   stubEff_tp_z0 = 0;
    stubEff_tp_d0 = 0;
    allstub_isCombinatoric = 0;
    allstub_isUnknown = 0;
@@ -464,7 +482,13 @@ void MyAnalysis::Init(TTree *tree)
    fChain->SetBranchAddress("stubEff_tp_pdgid", &stubEff_tp_pdgid, &b_stubEff_tp_pdgid);
    fChain->SetBranchAddress("stubEff_tp_eta", &stubEff_tp_eta, &b_stubEff_tp_eta);
    fChain->SetBranchAddress("stubEff_tp_phi", &stubEff_tp_phi, &b_stubEff_tp_phi);
-   fChain->SetBranchAddress("stubEff_tp_dz", &stubEff_tp_dz, &b_stubEff_tp_dz);
+   fChain->SetBranchAddress("stubEff_tp_vz", &stubEff_tp_vz, &b_stubEff_tp_vz);
+   fChain->SetBranchAddress("stubEff_tp_vx", &stubEff_tp_vx, &b_stubEff_tp_vx);
+   fChain->SetBranchAddress("stubEff_tp_vy", &stubEff_tp_vy, &b_stubEff_tp_vy);
+   fChain->SetBranchAddress("stubEff_tp_z0_prod", &stubEff_tp_z0_prod, &b_stubEff_tp_z0_prod);
+   fChain->SetBranchAddress("stubEff_tp_d0_prod", &stubEff_tp_d0_prod, &b_stubEff_tp_d0_prod);
+   fChain->SetBranchAddress("stubEff_tp_dxy", &stubEff_tp_dxy, &b_stubEff_tp_dxy);
+   fChain->SetBranchAddress("stubEff_tp_z0", &stubEff_tp_z0, &b_stubEff_tp_z0);
    fChain->SetBranchAddress("stubEff_tp_d0", &stubEff_tp_d0, &b_stubEff_tp_d0);
    fChain->SetBranchAddress("allstub_isCombinatoric", &allstub_isCombinatoric, &b_allstub_isCombinatoric);
    fChain->SetBranchAddress("allstub_isUnknown", &allstub_isUnknown, &b_allstub_isUnknown);

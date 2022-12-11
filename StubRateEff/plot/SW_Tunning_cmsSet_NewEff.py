@@ -104,9 +104,15 @@ def drawHistallW(A,AN, B, BN,R, I):
 #        if i+4==10:
 #            A[i].SetMarkerColor(28);
 
-    maxi = maxi * 1.2
-    A[0].SetMinimum(mini);
-    A[0].SetMaximum(maxi);
+    maxi = maxi * 1.05
+    if 'Efficiency' in R or 'Efficiency' in I:
+        if 'Mu' in R or 'Mu' in I:
+            mini=0.98
+        if 'Ele' in R or 'Mu' in I:
+            mini=0.90
+    A[0].SetMinimum(mini)
+#    A[0].SetMinimum(0.8*maxi)
+    A[0].SetMaximum(maxi)
     for i in range(len(A)):
         A[i].Draw("p HIST SAME")
 
@@ -118,8 +124,9 @@ def drawHistallW(A,AN, B, BN,R, I):
     for i in range(len(B)):
         B[i].SetLineColor(2+i*2);
         B[i].SetLineWidth(2);
-#        if i+1==3:
-#            B[i].SetLineColor(8);
+#        B[i].SetLineStyle(i+1);
+        if i+1==1:
+            B[i].SetLineColor(ROOT.kOrange);
 ##        B[i].SetLineStyle(i*2);
         B[i].Draw("HIST SAME")
         leg.AddEntry(B[i], BN[i]                           , "L");
@@ -136,9 +143,9 @@ def drawHistallW(A,AN, B, BN,R, I):
             tp = 23
         if I=='3':
             tp = 27
-        line1 = ROOT.TLine(12,0,12,maxi);
+        line1 = ROOT.TLine(12,mini,12,maxi);
         line1.Draw("same");
-        line2 = ROOT.TLine(tp,0,tp,maxi);
+        line2 = ROOT.TLine(tp,mini,tp,maxi);
         line2.Draw("same");
 
         label_cms="Tilt-                  Flat                               Tilt+"
@@ -180,15 +187,20 @@ for r in region:
 
 
 HHists=[]
+HHistsRealEff=[]
+
 for s in sample:
     filett = ROOT.TFile.Open(directory + 'L1Stub_TTbar_D76_SW' + s + '.root')
     fileMu = ROOT.TFile.Open(directory + 'L1Stub_SingleMu_D76_SW' + s + '.root')
     fileEle = ROOT.TFile.Open(directory + 'L1Stub_SingleElectron_D76_SW' + s + '.root')
+    fileMu7p0 = ROOT.TFile.Open(directory + 'L1Stub_SingleMu_D76_SW7p0.root')
+    fileEle7p0 = ROOT.TFile.Open(directory + 'L1Stub_SingleElectron_D76_SW7p0.root')
     Hs=[]
+    HsRealEff=[]
     for r in region:
         Hr=[]
+        HrRealEff=[]
         for i in range(1, 7):
-            H=[]
             histRate = filett.Get("SW_"+r+'_'+str(i)+'_'+"Rate")
             histRateGenuinePtg2GeV = filett.Get("SW_"+r+'_'+str(i)+'_'+"RateGenuinePtg2GeV")
             histCBCfail = filett.Get("SW_"+r+'_'+str(i)+'_'+"CBCfail")
@@ -197,25 +209,45 @@ for s in sample:
             histCICfail.Divide(histRateGenuinePtg2GeV)
             histClusMu = fileMu.Get("SW_"+r+'_'+str(i)+'_'+"Cluster")
             histStubMu = fileMu.Get("SW_"+r+'_'+str(i)+'_'+"Stub2") 
+            histStubMu7p0 = fileMu7p0.Get("SW_"+r+'_'+str(i)+'_'+"Stub2")
+            histClusMu7p0 = fileMu7p0.Get("SW_"+r+'_'+str(i)+'_'+"Cluster")
             histStubMu.Divide(histClusMu)
+            histStubMu7p0.Divide(histClusMu7p0)
+            histStubMuNew = histStubMu.Clone()
+            histStubMuNew.Divide(histStubMu7p0)
             histClusEle = fileEle.Get("SW_"+r+'_'+str(i)+'_'+"Cluster")
             histStubEle = fileEle.Get("SW_"+r+'_'+str(i)+'_'+"Stub2")
+            histStubEle7p0 = fileEle7p0.Get("SW_"+r+'_'+str(i)+'_'+"Stub2")
+            histClusEle7p0 = fileEle7p0.Get("SW_"+r+'_'+str(i)+'_'+"Cluster")
             histStubEle.Divide(histClusEle)
-            H = [histRate, histCBCfail, histCICfail, histStubMu, histStubEle]
+            histStubEle7p0.Divide(histClusEle7p0)
+            histStubEleNew = histStubEle.Clone()
+            histStubEleNew.Divide(histStubEle7p0)
+            H = [histRate, histCBCfail, histCICfail, histStubMuNew, histStubEleNew]
+            HRealEff = [histRate, histCBCfail, histCICfail, histStubMu, histStubEle]
+#            HRealEff = [histRate, histCBCfail, histCICfail, histClusMu, histClusEle]
             HN = ["Rate", "CBC fail fraction", "CIC fail fraction", "Stub eff (Mu, pt>2)", "Stub eff (Ele, pt>4)"]
             Hr.append(H)
+            HrRealEff.append(HRealEff)            
         Hs.append(Hr)
+        HsRealEff.append(HrRealEff)
+    HHistsRealEff.append(HsRealEff)
     HHists.append(Hs)
 
 HHistsTune=[]
+HHistsTuneRealEff=[]
 sampleTune=['tight','loose']
 for s in sampleTune:
     filett = ROOT.TFile.Open(directory + 'L1Stub_TTbar_D76_SW' + s + '.root')
     fileMu = ROOT.TFile.Open(directory + 'L1Stub_SingleMu_D76_SW' + s + '.root')
     fileEle = ROOT.TFile.Open(directory + 'L1Stub_SingleElectron_D76_SW' + s + '.root')
+    fileMu7p0 = ROOT.TFile.Open(directory + 'L1Stub_SingleMu_D76_SW7p0.root')
+    fileEle7p0 = ROOT.TFile.Open(directory + 'L1Stub_SingleElectron_D76_SW7p0.root')
     Hs=[]
+    HsRealEff=[]   
     for r in region:
         Hr=[]
+        HrRealEff=[]
         for i in range(1, 7):
             H=[]
             histRate = filett.Get("SW_"+r+'_'+str(i)+'_'+"Rate")
@@ -226,15 +258,30 @@ for s in sampleTune:
             histCICfail.Divide(histRateGenuinePtg2GeV)
             histClusMu = fileMu.Get("SW_"+r+'_'+str(i)+'_'+"Cluster")
             histStubMu = fileMu.Get("SW_"+r+'_'+str(i)+'_'+"Stub2")
+            histStubMu7p0 = fileMu7p0.Get("SW_"+r+'_'+str(i)+'_'+"Stub2")
+            histClusMu7p0 = fileMu7p0.Get("SW_"+r+'_'+str(i)+'_'+"Cluster")
             histStubMu.Divide(histClusMu)
+            histStubMu7p0.Divide(histClusMu7p0)
+            histStubMuNew = histStubMu.Clone()
+            histStubMuNew.Divide(histStubMu7p0)
             histClusEle = fileEle.Get("SW_"+r+'_'+str(i)+'_'+"Cluster")
             histStubEle = fileEle.Get("SW_"+r+'_'+str(i)+'_'+"Stub2")
+            histStubEle7p0 = fileEle7p0.Get("SW_"+r+'_'+str(i)+'_'+"Stub2")
+            histClusEle7p0 = fileEle7p0.Get("SW_"+r+'_'+str(i)+'_'+"Cluster")
             histStubEle.Divide(histClusEle)
-            H = [histRate, histCBCfail, histCICfail, histStubMu, histStubEle]
+            histStubEle7p0.Divide(histClusEle7p0)
+            histStubEleNew = histStubEle.Clone()
+            histStubEleNew.Divide(histStubEle7p0)
+            H = [histRate, histCBCfail, histCICfail, histStubMuNew, histStubEleNew]
+            HRealEff = [histRate, histCBCfail, histCICfail, histStubMu, histStubEle]
+#            HRealEff = [histRate, histCBCfail, histCICfail, histClusMu, histClusEle]
             HN = ["Rate", "CBC fail fraction", "CIC fail fraction", "Stub eff (Mu, pt>2)", "Stub eff (Ele, pt>4)"]
             Hr.append(H)
+            HrRealEff.append(HRealEff)       
         Hs.append(Hr)
-    HHistsTune.append(Hs)
+        HsRealEff.append(HrRealEff)
+    HHistsTune.append(Hs) 
+    HHistsTuneRealEff.append(HsRealEff)
 
 
 
@@ -259,6 +306,7 @@ LooseTuneEndcapCutSet3 = [0]
 LooseTuneEndcapCutSet4 = [0]
 LooseTuneEndcapCutSet5 = [0]
 
+Rates=""
 # HHists[SW][region][layer][variable]
 for r in range(len(region)):
     for i in range(1, 7):
@@ -292,61 +340,38 @@ for r in range(len(region)):
                         paramLoose[b] = sampleV[s]
                     else:
                         break
-#                    paramTight[b] = sampleV[s]
-##Seb's Algo
-##                    print  sample[s] + ' ' +str(b+1) +' layer' + str(i) + ' ' + str(HHists[s][r][i-1][3].GetBinContent(b+1))
-#                    if HHists[s][r][i-1][3].GetBinContent(b+1)<MuEff:
-#                        paramTight[b] = sampleV[s]
-#                    elif s==0:
-#                        paramTight[b] = sampleV[s]
-#                    elif HHists[s][r][i-1][3].GetBinContent(b+1) * math.sqrt(1- HHists[s][r][i-1][0].GetBinContent(b+1)/HHists[-1][r][i-1][0].GetBinContent(b+1)) > HHists[s-1][r][i-1][3].GetBinContent(b+1) * math.sqrt(1- HHists[s-1][r][i-1][0].GetBinContent(b+1)/HHists[-1][r][i-1][0].GetBinContent(b+1)):
-#                        paramTight[b] = sampleV[s]
-##                        print sample[s] + ' bin' +str(b+1) +' layer' + str(i) + ' increasing ' + str(HHists[s][r][i-1][3].GetBinContent(b+1) * math.sqrt(1- HHists[s][r][i-1][0].GetBinContent(b+1)/HHists[-1][r][i-1][0].GetBinContent(b+1))) + ">"+ str(HHists[s-1][r][i-1][3].GetBinContent(b+1) * math.sqrt(1- HHists[s-1][r][i-1][0].GetBinContent(b+1)/HHists[-1][r][i-1][0].GetBinContent(b+1)))
-#                    else:
-#                        paramTight[b] = sampleV[s]
-# #                       print sample[s] + ' bin' +str(b+1) +' layer' + str(i) + ' decreasing' + str(HHists[s][r][i-1][3].GetBinContent(b+1) * math.sqrt(1- HHists[s][r][i-1][0].GetBinContent(b+1)/HHists[-1][r][i-1][0].GetBinContent(b+1))) +"<"+ str(HHists[s-1][r][i-1][3].GetBinContent(b+1) * math.sqrt(1- HHists[s-1][r][i-1][0].GetBinContent(b+1)/HHists[-1][r][i-1][0].GetBinContent(b+1))) + " eff=" + str(HHists[s][r][i-1][3].GetBinContent(b+1))
-#                        break
-#
-#
-##                    if i==1:
-##                        print  sample[s] + ' ' +str(b+1) +' layer' + str(i) + ' ' + str(HHists[s][r][i-1][3].GetBinContent(b+1))
-##                    if HHists[-1][r][i-1][3].GetBinContent(b+1)-HHists[s][r][i-1][3].GetBinContent(b+1)<MuEffLimit and HHists[-1][r][i-1][4].GetBinContent(b+1)-HHists[s][r][i-1][4].GetBinContent(b++1)<EleEffLimit:
-#                    
-##                        paramTight[b] = sampleV[s]
-##                        break
 
         if len(paramTight)>0:
-#            if r==0 and i<4:
-#                print region[r] + '/' + str(i)
-#                print 'tilted left=' 
-#                print paramTight[:12]
-#                print 'tilted right='
-#                TR=paramTight[-12:]
-#                TR.reverse()
-#                print TR
-#                print 'flat=' 
-#                print paramTight[12:-12]
-#            else:
-#                print region[r] + '/' + str(i)
-#                print paramTight 
             if region[r] == 'Barrel' and i==1:
                 TightTuneBarrelCut.append(most_frequent(paramTight[12:-12]))
                 TightTuneTiltedBarrelCutSet1.extend(paramTight[-12:])
                 LooseTuneBarrelCut.append(most_frequent(paramLoose[12:-12]))
                 LooseTuneTiltedBarrelCutSet1.extend(paramLoose[-12:])
+                for x in range(len(paramTight[12:-12])):
+                    paramTight[12+x]=most_frequent(paramTight[12:-12])
+                    paramLoose[12+x]=most_frequent(paramLoose[12:-12])
             if region[r] == 'Barrel' and i==2:
                 TightTuneBarrelCut.append(most_frequent(paramTight[12:-12]))
                 TightTuneTiltedBarrelCutSet2.extend(paramTight[-12:])
                 LooseTuneBarrelCut.append(most_frequent(paramLoose[12:-12]))
                 LooseTuneTiltedBarrelCutSet2.extend(paramLoose[-12:])
+                for x in range(len(paramTight[12:-12])):
+                    paramTight[12+x]=most_frequent(paramTight[12:-12])
+                    paramLoose[12+x]=most_frequent(paramLoose[12:-12])
             if region[r] == 'Barrel' and i==3:
                 TightTuneBarrelCut.append(most_frequent(paramTight[12:-12]))
                 TightTuneTiltedBarrelCutSet3.extend(paramTight[-12:])
                 LooseTuneBarrelCut.append(most_frequent(paramLoose[12:-12]))
                 LooseTuneTiltedBarrelCutSet3.extend(paramLoose[-12:])
+                for x in range(len(paramTight[12:-12])):
+                    paramTight[12+x]=most_frequent(paramTight[12:-12])
+                    paramLoose[12+x]=most_frequent(paramLoose[12:-12])
             if region[r] == 'Barrel' and i>3:
                 TightTuneBarrelCut.append(most_frequent(paramTight))
                 LooseTuneBarrelCut.append(most_frequent(paramLoose))
+                for x in range(len(paramTight)):
+                    paramTight[x]=most_frequent(paramTight)
+                    paramLoose[x]=most_frequent(paramLoose)
             if region[r] == 'Endcap' and i==1:
                 TightTuneEndcapCutSet1.extend(paramTight[:15])
                 LooseTuneEndcapCutSet1.extend(paramLoose[:15])
@@ -368,40 +393,71 @@ for r in range(len(region)):
         NSWTTight_CICfail= HHists[-1][r][i-1][2].Clone()
         NSWTTight_effMu= HHists[-1][r][i-1][3].Clone()
         NSWTTight_effEle= HHists[-1][r][i-1][4].Clone()
+        NSWTTight_effMuRealEff= HHists[-1][r][i-1][3].Clone()
+        NSWTTight_effEleRealEff= HHists[-1][r][i-1][4].Clone()
 
         NSWTLoose_Rate = HHists[-1][r][i-1][0].Clone()
         NSWTLoose_CBCfail= HHists[-1][r][i-1][1].Clone()
         NSWTLoose_CICfail= HHists[-1][r][i-1][2].Clone()
         NSWTLoose_effMu= HHists[-1][r][i-1][3].Clone()
         NSWTLoose_effEle= HHists[-1][r][i-1][4].Clone()
+        NSWTLoose_effMuRealEff= HHists[-1][r][i-1][3].Clone()
+        NSWTLoose_effEleRealEff= HHists[-1][r][i-1][4].Clone()
 
         for b in range(HHists[-1][r][i-1][0].GetNbinsX()):
             if HHists[-1][r][i-1][0].GetBinContent(b+1)==0:
                 continue
-            NSWTTight_Rate.SetBinContent(b+1, HHists[sampleV.index(paramTight[b])][r][i-1][0].GetBinContent(b+1))
-            NSWTTight_CBCfail.SetBinContent(b+1, HHists[sampleV.index(paramTight[b])][r][i-1][1].GetBinContent(b+1))
-            NSWTTight_CICfail.SetBinContent(b+1, HHists[sampleV.index(paramTight[b])][r][i-1][2].GetBinContent(b+1))
-            NSWTTight_effMu.SetBinContent(b+1, HHists[sampleV.index(paramTight[b])][r][i-1][3].GetBinContent(b+1))
-            NSWTTight_effEle.SetBinContent(b+1, HHists[sampleV.index(paramTight[b])][r][i-1][4].GetBinContent(b+1))
+            NSWTTight_Rate.SetBinContent(b+1, 1.001*HHists[sampleV.index(paramTight[b])][r][i-1][0].GetBinContent(b+1))
+            NSWTTight_CBCfail.SetBinContent(b+1, 1.001*HHists[sampleV.index(paramTight[b])][r][i-1][1].GetBinContent(b+1))
+            NSWTTight_CICfail.SetBinContent(b+1, 1.001*HHists[sampleV.index(paramTight[b])][r][i-1][2].GetBinContent(b+1))
+            NSWTTight_effMu.SetBinContent(b+1, 1.001*HHists[sampleV.index(paramTight[b])][r][i-1][3].GetBinContent(b+1))
+            NSWTTight_effEle.SetBinContent(b+1, 1.001*HHists[sampleV.index(paramTight[b])][r][i-1][4].GetBinContent(b+1))
+            NSWTTight_effMuRealEff.SetBinContent(b+1, 1.001*HHistsRealEff[sampleV.index(paramTight[b])][r][i-1][3].GetBinContent(b+1))
+            NSWTTight_effEleRealEff.SetBinContent(b+1, 1.001*HHistsRealEff[sampleV.index(paramTight[b])][r][i-1][4].GetBinContent(b+1))
 
-            NSWTLoose_Rate.SetBinContent(b+1, HHists[sampleV.index(paramLoose[b])][r][i-1][0].GetBinContent(b+1))
-            NSWTLoose_CBCfail.SetBinContent(b+1, HHists[sampleV.index(paramLoose[b])][r][i-1][1].GetBinContent(b+1))
-            NSWTLoose_CICfail.SetBinContent(b+1, HHists[sampleV.index(paramLoose[b])][r][i-1][2].GetBinContent(b+1))
-            NSWTLoose_effMu.SetBinContent(b+1, HHists[sampleV.index(paramLoose[b])][r][i-1][3].GetBinContent(b+1))
-            NSWTLoose_effEle.SetBinContent(b+1, HHists[sampleV.index(paramLoose[b])][r][i-1][4].GetBinContent(b+1))
+            NSWTLoose_Rate.SetBinContent(b+1, 0.999*HHists[sampleV.index(paramLoose[b])][r][i-1][0].GetBinContent(b+1))
+            NSWTLoose_CBCfail.SetBinContent(b+1, 0.999*HHists[sampleV.index(paramLoose[b])][r][i-1][1].GetBinContent(b+1))
+            NSWTLoose_CICfail.SetBinContent(b+1, 0.999*HHists[sampleV.index(paramLoose[b])][r][i-1][2].GetBinContent(b+1))
+            NSWTLoose_effMu.SetBinContent(b+1, 0.999*HHists[sampleV.index(paramLoose[b])][r][i-1][3].GetBinContent(b+1))
+            NSWTLoose_effEle.SetBinContent(b+1, 0.999*HHists[sampleV.index(paramLoose[b])][r][i-1][4].GetBinContent(b+1))
+            NSWTLoose_effMuRealEff.SetBinContent(b+1, 0.999*HHistsRealEff[sampleV.index(paramLoose[b])][r][i-1][3].GetBinContent(b+1))
+            NSWTLoose_effEleRealEff.SetBinContent(b+1, 0.999*HHistsRealEff[sampleV.index(paramLoose[b])][r][i-1][4].GetBinContent(b+1))
 
         newTuneTight=[NSWTTight_Rate, NSWTTight_CBCfail, NSWTTight_CICfail, NSWTTight_effMu, NSWTTight_effEle]
         newTuneLoose=[NSWTLoose_Rate, NSWTLoose_CBCfail, NSWTLoose_CICfail, NSWTLoose_effMu, NSWTLoose_effEle]
+        newTuneTightRealEff=[NSWTTight_Rate, NSWTTight_CBCfail, NSWTTight_CICfail, NSWTTight_effMuRealEff, NSWTTight_effEleRealEff]
+        newTuneLooseRealEff=[NSWTLoose_Rate, NSWTLoose_CBCfail, NSWTLoose_CICfail, NSWTLoose_effMuRealEff, NSWTLoose_effEleRealEff]
         for c in range(len(plots)):
             H=[]
             HT=[]
+            HRealEff=[]
+            HTRealEff=[]
             for s in range(len(sample)):
                 H.append(HHists[s][r][i-1][c])
+                HRealEff.append(HHistsRealEff[s][r][i-1][c])
             for s in range(len(sampleTune)):
                 HT.append(HHistsTune[s][r][i-1][c])
+                HTRealEff.append(HHistsTuneRealEff[s][r][i-1][c])
             HT.append(newTuneTight[c])
             HT.append(newTuneLoose[c])
+            HTRealEff.append(newTuneTightRealEff[c])
+            HTRealEff.append(newTuneLooseRealEff[c])
             drawHistallW(H,sample,HT,['tight','loose','newTight','newLoose'], region[r]+'-'+plots[c] , str(i))
+            totalRate=0
+            if 'StubRate' == plots[c]:
+                vec=['tight','loose','newTight','newLoose']
+                for a in range(len(HT)):
+                    if 'Barr' in region[r]:
+                        Rates += (vec[a]+'Tune-' + region[r]  +'-layer'+str(i)+': ').ljust(70) +str(HT[a].Integral()) + '\n'
+                    else:
+                        Rates += (vec[a]+'Tune-' + region[r]  +'-Disk'+str(i)+': ').ljust(70)+str(HT[a].Integral()) + '\n'               
+                if HT[0].Integral()>0:
+                    Rates += 'ratio of new tight to tight tune for ' + region[r]  +'-Disk'+str(i)+'= '+str(HT[2].Integral()/HT[0].Integral()) + '\n'
+            if 'Efficiency' in plots[c]:
+                drawHistallW(HRealEff,sample,HTRealEff,['tight','loose','newTight','newLoose'], 'RealEff'+region[r]+'-'+plots[c] , str(i))
+os.system("mkdir plot_SW_AllW")
+os.system("mv *.png plot_SW_AllW")
+
 
 text = '# New tight tune based on simulated events CMSSW_11_3_0_pre3, D76 \n'
 text +=  '    BarrelCut    = cms.vdouble(' 
@@ -448,4 +504,4 @@ text += ') ),\n        )\n)\n'
 
 print text
 
-
+print Rates
