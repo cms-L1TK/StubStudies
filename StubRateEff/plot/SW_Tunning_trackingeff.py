@@ -74,12 +74,12 @@ def compareHists(hists,Fnames, ch = "channel", reg = "region", var="sample", var
 HistAddress = '/afs/crc.nd.edu/user/r/rgoldouz/L1tracker/CMSSW_11_3_0_pre3/src/L1Trigger/TrackFindingTracklet/test/'
 HistAddress = '/scratch365/rgoldouz/myCondor/L1Stub/TrkEff/'
 typeLep = ['SingleElectron','SingleMu', 'TTbar']
-typeLep = ['SingleElectron','SingleMu']
+typeLep = ['SingleElectron','SingleMu','DisplacedMu','TTbar']
 typeLep = [
-#"SingleElectronFlatPt1p5To8_CMSSW1250pre2D76_CalcBendCutsTrue_nTPstub0",
-#"SingleMuFlatPt1p5To8_CMSSW1250pre2D76_CalcBendCutsTrue",
+"SingleElectronFlatPt1p5To8_CMSSW1250pre2D76_CalcBendCutsTrue_nTPstub0",
+"SingleMuFlatPt1p5To8_CMSSW1250pre2D76_CalcBendCutsTrue",
 "DisplacedMuPt1p5To8Dxy100_CalcBendCutsTrue",
-#"TTbar_CMSSW1250pre2D76_CalcBendCutsTrue"
+"TTbar_CMSSW1250pre2D76_CalcBendCutsTrue"
 ]
 samples = [
 "newLoose",
@@ -90,18 +90,21 @@ samples = [
 ]
 
 Variables = []
-Files = ROOT.TFile.Open(HistAddress + 'output_L1Stub_' + typeLep[0] +'_' +  samples[0] +'_pt3.root' )
+Files = ROOT.TFile.Open(HistAddress + 'output_L1Stub_' + typeLep[0] +'_' +  samples[0] +'.root' )
 my_list = Files.GetListOfKeys()
 for obj in my_list: # obj is TKey
     if obj.GetClassName() == "TH1F":
         Variables.append(obj.GetName())
 colors =  [ROOT.kBlack, ROOT.kRed-4, ROOT.kBlue, ROOT.kGreen, ROOT.kCyan, ROOT.kYellow]
-
 for var in Variables:
     for lep in typeLep:
         Hists=[]
         for sam in range(len(samples)):
-            Files = ROOT.TFile.Open(HistAddress + 'output_L1Stub_' + lep +'_' +  samples[sam] +'_pt3.root' )
+            Files
+            if 'Displaced' in lep:
+                 Files = ROOT.TFile.Open(HistAddress + 'output_L1Stub_' + lep +'_' +  samples[sam] +'_pt3.root' )
+            else:
+                 Files = ROOT.TFile.Open(HistAddress + 'output_L1Stub_' + lep +'_' +  samples[sam] +'.root' )
             h=Files.Get(var)
             h.SetLineColor(colors[sam])
             Hists.append(h)

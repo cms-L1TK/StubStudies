@@ -448,11 +448,12 @@ for r in range(len(region)):
                 vec=['tight','loose','newTight','newLoose']
                 for a in range(len(HT)):
                     if 'Barr' in region[r]:
-                        Rates += (vec[a]+'Tune-' + region[r]  +'-layer'+str(i)+': ').ljust(70) +str(HT[a].Integral()) + '\n'
+                        Rates += (vec[a]+'Tune-' + region[r]  +'-layer'+str(i)+': ').ljust(70) +str('{:.3}'.format(HT[a].Integral())) + '\n'
                     else:
-                        Rates += (vec[a]+'Tune-' + region[r]  +'-Disk'+str(i)+': ').ljust(70)+str(HT[a].Integral()) + '\n'               
+                        Rates += (vec[a]+'Tune-' + region[r]  +'-Disk'+str(i)+': ').ljust(70)+str('{:.3}'.format(HT[a].Integral())) + '\n'               
                 if HT[0].Integral()>0:
-                    Rates += 'ratio of new tight to tight tune for ' + region[r]  +'-Disk'+str(i)+'= '+str(HT[2].Integral()/HT[0].Integral()) + '\n'
+                    Rates += 'ratio of new tight to tight tune for ' + region[r]  +'-Disk'+str(i)+'= '+str('{:.3}'.format(HT[2].Integral()/HT[0].Integral())) + '\n'
+                    Rates +='\n'
             if 'Efficiency' in plots[c]:
                 drawHistallW(HRealEff,sample,HTRealEff,['tight','loose','newTight','newLoose'], 'RealEff'+region[r]+'-'+plots[c] , str(i))
 os.system("mkdir plot_SW_AllW")
